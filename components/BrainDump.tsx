@@ -27,34 +27,34 @@ export function BrainDump() {
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          {/* Input Area */}
-         <div className="lg:col-span-4">
-            <Card className="card-base border-t-0 sticky top-40 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/20">
-               <CardHeader className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] py-8 px-10 text-white relative overflow-hidden">
+         <div className="lg:col-span-4 translate-y-0">
+            <Card className="card-base border-t-0 md:sticky md:top-40 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/20 max-h-fit">
+               <CardHeader className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] py-6 sm:py-8 px-6 sm:px-10 text-white relative overflow-hidden">
                   <div className="absolute top-[-20%] right-[-10%] w-32 h-32 bg-white/10 blur-3xl rounded-full pointer-events-none" />
-                  <CardTitle className="text-3xl font-black tracking-tighter flex items-center gap-4 uppercase leading-none relative z-10">
-                     <Brain className="w-8 h-8 opacity-80" /> Búnker Mental
+                  <CardTitle className="text-2xl sm:text-3xl font-black tracking-tighter flex items-center gap-3 sm:gap-4 uppercase leading-none relative z-10">
+                     <Brain className="w-7 h-7 sm:w-8 sm:h-8 opacity-80" /> Búnker Mental
                   </CardTitle>
-                  <p className="text-white/60 font-bold tracking-widest text-xs uppercase mt-2 relative z-10">Vacía tu RAM cognitiva</p>
+                  <p className="text-white/60 font-bold tracking-widest text-[10px] sm:text-xs uppercase mt-2 relative z-10">Vacía tu RAM cognitiva</p>
                </CardHeader>
-               <CardContent className="p-8 space-y-6 bg-white dark:bg-[#0a0f0a]/50">
+               <CardContent className="p-6 sm:p-8 space-y-4 sm:space-y-6 bg-white dark:bg-[#0a0f0a]/50">
                   <div className="relative">
                      <Textarea 
                         placeholder="Escribe lo que ocupa tu mente..."
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
-                        className="min-h-[200px] bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.5rem] p-6 text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] resize-none transition-all placeholder:opacity-40 shadow-inner"
+                        className="min-h-[150px] sm:min-h-[200px] bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.2rem] sm:rounded-[1.5rem] p-5 sm:p-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] resize-none transition-all placeholder:opacity-40 shadow-inner"
                         onKeyDown={(e) => {
                            if(e.key === "Enter" && e.ctrlKey) handleAdd()
                         }}
                      />
                      {newNote.length > 0 && (
-                        <div className="absolute right-5 bottom-5 text-[#a47148] font-black text-[10px] px-2 py-1 bg-[#a47148]/10 rounded-lg">
+                        <div className="absolute right-4 bottom-4 text-[#a47148] font-black text-[9px] px-2 py-1 bg-[#a47148]/10 rounded-lg">
                            {newNote.length} CHRS
                         </div>
                      )}
                   </div>
-                  <Button onClick={handleAdd} disabled={!newNote.trim()} className="btn-primary w-full h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-40 group">
-                     <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> Registrar Semilla
+                  <Button onClick={handleAdd} disabled={!newNote.trim()} className="btn-primary w-full h-12 sm:h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-40 group">
+                     <Send className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> Registrar Semilla
                   </Button>
                </CardContent>
             </Card>
@@ -95,25 +95,25 @@ export function BrainDump() {
                      exit={{ opacity: 0, scale: 0.94 }}
                      layout
                   >
-                     <Card className="group overflow-hidden border border-[#3a5a40]/10 dark:border-[#3a5a40]/20 bg-white dark:bg-[#1b221b] hover:border-[#3a5a40]/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 rounded-[1.5rem] border-l-4 border-l-[#3a5a40]/30 p-0">
-                        <CardContent className="p-6 flex flex-col gap-4">
+                     <Card className="group overflow-hidden border border-[#3a5a40]/10 dark:border-[#3a5a40]/20 bg-white dark:bg-[#1b221b] hover:border-[#3a5a40]/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 rounded-[1.2rem] sm:rounded-[1.5rem] border-l-4 border-l-[#3a5a40]/30 p-0">
+                        <CardContent className="p-5 sm:p-6 flex flex-col gap-3 sm:gap-4">
                            <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-2 flex-wrap">
-                                 <span className="text-[11px] font-black px-3 py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
+                                 <span className="text-[10px] sm:text-[11px] font-black px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
                                     {format(new Date(note.created_at), 'dd MMM')}
                                  </span>
-                                 <span className="text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
+                                 <span className="text-[10px] sm:text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
                                     {format(new Date(note.created_at), 'HH:mm')}
                                  </span>
                               </div>
                               <button 
                                  onClick={() => deleteNote(note.id)}
-                                 className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                 className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all sm:opacity-0 group-hover:opacity-100 flex-shrink-0"
                               >
-                                 <Trash2 className="w-4 h-4" />
+                                 <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </button>
                            </div>
-                           <p className="text-[#344e41] dark:text-[#dad7cd] font-semibold leading-relaxed whitespace-pre-wrap text-base">
+                           <p className="text-[#344e41] dark:text-[#dad7cd] font-semibold leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
                               {note.content}
                            </p>
                         </CardContent>

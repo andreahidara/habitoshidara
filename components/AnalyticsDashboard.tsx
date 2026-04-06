@@ -27,14 +27,14 @@ export function AnalyticsDashboard() {
 
   return (
     <Card className="card-base border-t-0 flex flex-col overflow-hidden p-0 shadow-2xl shadow-[#3a5a40]/10">
-      <CardHeader className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] py-8 px-10 text-white relative overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] py-6 sm:py-8 px-6 sm:px-10 text-white relative overflow-hidden">
         <div className="absolute top-[-50%] right-[-10%] w-32 h-32 bg-white/10 blur-3xl rounded-full pointer-events-none" />
-        <CardTitle className="text-2xl text-white flex items-center gap-4 font-black tracking-tighter uppercase leading-none relative z-10">
-           <TrendingUp className="w-7 h-7 opacity-80" /> Rendimiento Semanal
+        <CardTitle className="text-xl sm:text-2xl text-white flex items-center gap-3 sm:gap-4 font-black tracking-tighter uppercase leading-none relative z-10">
+           <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 opacity-80" /> Rendimiento Semanal
         </CardTitle>
-        <p className="text-white/60 font-bold tracking-widest text-xs uppercase mt-2 relative z-10">Hábitos completados por día</p>
+        <p className="text-white/60 font-bold tracking-widest text-[10px] sm:text-xs uppercase mt-2 relative z-10">Hábitos completados por día</p>
       </CardHeader>
-      <CardContent className="p-6 sm:p-8 bg-white dark:bg-[#0a0f0a]/50">
+      <CardContent className="p-4 sm:p-8 bg-white dark:bg-[#0a0f0a]/50">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
             <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#3a5a40" opacity={0.1} />

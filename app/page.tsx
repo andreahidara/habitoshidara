@@ -159,31 +159,31 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#e9e0d8] dark:bg-[#0a0f0a] text-[#283618] dark:text-[#dad7cd] font-sans selection:bg-[#31572c]/40 transition-colors duration-500 overflow-x-hidden pb-24 relative px-2 sm:px-0">
       
-      <header className="sticky top-0 z-50 w-full border-b border-[#3a5a40]/20 dark:border-[#3a5a40]/30 bg-white/95 dark:bg-[#1b221b]/98 backdrop-blur-md px-4 sm:px-8 py-5 shadow-2xl shadow-[#344e41]/10 transition-colors">
-        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 w-full border-b border-[#3a5a40]/20 dark:border-[#3a5a40]/30 bg-white/95 dark:bg-[#1b221b]/98 backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 shadow-2xl shadow-[#344e41]/10 transition-colors">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
           
-          <div className="flex items-center gap-4">
-             <div className="w-12 h-12 flex items-center justify-center rounded-[1.2rem] bg-[#3a5a40] shadow-2xl text-white">
-               <Leaf className="w-6 h-6" />
+          <div className="flex items-center gap-3 sm:gap-4">
+             <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-[1rem] sm:rounded-[1.2rem] bg-[#3a5a40] shadow-2xl text-white">
+               <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
              </div>
-             <h1 className="font-extrabold text-2xl tracking-tighter text-[#344e41] dark:text-[#dad7cd] leading-none uppercase">Dashboard</h1>
+             <h1 className="font-extrabold text-xl sm:text-2xl tracking-tighter text-[#344e41] dark:text-[#dad7cd] leading-none uppercase">Dashboard</h1>
           </div>
 
-          <nav className="flex items-center bg-[#dad7cd]/50 dark:bg-black/60 p-1.5 rounded-[2.5rem] border border-[#344e41]/10 backdrop-blur-md">
+          <nav className="hidden md:flex items-center bg-[#dad7cd]/50 dark:bg-black/60 p-1.5 rounded-[2.5rem] border border-[#344e41]/10 backdrop-blur-md">
              {tabs.map((tab) => {
                const Icon = tab.icon;
                const isActive = activeTab === tab.id;
                return (
                  <button key={tab.id} onClick={() => setActiveTab(tab.id as TabId)} className={`relative flex items-center gap-3 px-8 py-3.5 rounded-[2rem] text-sm font-black transition-all ${isActive ? 'text-white dark:text-[#a3b18a] z-10' : 'text-[#3a5a40] dark:text-[#588157] hover:text-[#344e41] dark:hover:text-[#dad7cd]'}`}>
-                   {isActive && ( <motion.div layoutId="activeTab" className="absolute inset-0 bg-[#3a5a40] dark:bg-[#344e41] shadow-2xl rounded-[2rem]" transition={{ type: "spring", bounce: 0.1, duration: 0.7 }} /> )}
+                   {isActive && ( <motion.div layoutId="activeTabDesktop" className="absolute inset-0 bg-[#3a5a40] dark:bg-[#344e41] shadow-2xl rounded-[2rem]" transition={{ type: "spring", bounce: 0.1, duration: 0.7 }} /> )}
                    <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'scale-110' : ''}`} />
-                   <span className="relative z-10 hidden md:inline">{tab.label}</span>
+                   <span className="relative z-10">{tab.label}</span>
                  </button>
                )
              })}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="rounded-full hover:bg-[#dad7cd]/40 text-[#3a5a40]">
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -192,6 +192,25 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* BOTTOM NAV FOR MOBILE */}
+      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm bg-white/90 dark:bg-[#1b221b]/95 backdrop-blur-xl border border-[#3a5a40]/20 rounded-[2.5rem] p-2 shadow-[0_20px_50px_-12px_rgba(58,90,64,0.3)] flex items-center justify-between">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as TabId)} className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-14 rounded-[2rem] transition-all ${isActive ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#3a5a40]/50 dark:text-[#588157]/50'}`}>
+              <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-[#3a5a40]/10' : ''}`}>
+                <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : 'scale-100 opacity-70'}`} />
+              </div>
+              <span className="relative z-10 text-[9px] font-black uppercase tracking-tighter">{tab.label}</span>
+              {isActive && (
+                <motion.div layoutId="activeTabMobile" className="absolute top-1 w-1.5 h-1.5 rounded-full bg-[#3a5a40] dark:bg-[#a3b18a]" transition={{ type: "spring", bounce: 0.1, duration: 0.5 }} />
+              )}
+            </button>
+          )
+        })}
+      </nav>
 
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-[1600px] mx-auto flex flex-col gap-12 mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
         
@@ -215,31 +234,33 @@ export default function Home() {
               {activeTab === 'home' && (
                  <div className="flex flex-col gap-12 w-full">
                     <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
-                      <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-8 sm:px-12 py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
+                      <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-6 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
                         <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
-                        <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-4 uppercase relative z-10">
-                           <CalendarDays className="w-10 h-10 text-white/50" /> Planificador
+                        <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase relative z-10">
+                           <CalendarDays className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Planificador
                         </h2>
-                        <div className="relative z-10 flex items-center gap-3 px-6 py-3 bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/10 rounded-[2rem] shadow-lg text-[12px] font-black uppercase text-white tracking-widest">
-                           <Clock className="w-5 h-5 text-[#f2e9e4]" /> {format(new Date(), 'EEEE, d MMM')}
+                        <div className="relative z-10 flex items-center gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/10 rounded-[2rem] shadow-lg text-[10px] sm:text-[12px] font-black uppercase text-white tracking-widest">
+                           <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#f2e9e4]" /> {format(new Date(), 'EEEE, d MMM')}
                         </div>
                       </div>
-                      <CardContent className="p-4 sm:p-12 bg-white dark:bg-[#0a0f0a]/50">
-                         <FullCalendar 
-                            plugins={[dayGridPlugin, interactionPlugin]} 
-                            initialView="dayGridMonth" 
-                            events={events} 
-                            dateClick={handleDateClick} 
-                            eventClick={handleEventClick} 
-                            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth' }} 
-                            contentHeight="auto" 
-                            aspectRatio={2.2}
-                            firstDay={1}
-                         />
+                      <CardContent className="p-2 sm:p-12 bg-white dark:bg-[#0a0f0a]/50">
+                         <div className="calendar-container overflow-hidden">
+                            <FullCalendar 
+                               plugins={[dayGridPlugin, interactionPlugin]} 
+                               initialView="dayGridMonth" 
+                               events={events} 
+                               dateClick={handleDateClick} 
+                               eventClick={handleEventClick} 
+                               headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth' }} 
+                               contentHeight="auto" 
+                               aspectRatio={1.2}
+                               firstDay={1}
+                            />
+                         </div>
                       </CardContent>
                     </Card>
 
-                    <div className="pt-8">
+                    <div className="pt-4 sm:pt-8 overflow-x-auto pb-4">
                        <EventHeatmap />
                     </div>
                  </div>
@@ -251,16 +272,16 @@ export default function Home() {
 
                     {/* HEADER */}
                     <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
-                      <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-8 sm:px-12 py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
+                      <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-6 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
                         <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
-                        <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-4 uppercase relative z-10">
-                           <Target className="w-10 h-10 text-white/50" /> Hábitos
+                        <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase relative z-10">
+                           <Target className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Hábitos
                         </h2>
-                        <div className="relative z-10 flex items-center gap-3 px-6 py-3 bg-white/10 border border-white/10 rounded-[2rem] text-[12px] font-black uppercase text-white tracking-widest">
-                           <Flame className="w-5 h-5 text-[#f2e9e4]/70" /> {completedTodayCount} / {totalHabits} hoy
+                        <div className="relative z-10 flex items-center gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/10 border border-white/10 rounded-[2rem] text-[10px] sm:text-[12px] font-black uppercase text-white tracking-widest">
+                           <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-[#f2e9e4]/70" /> {completedTodayCount} / {totalHabits} hoy
                         </div>
                       </div>
-                      <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50">
+                      <CardContent className="p-4 sm:p-10 bg-white dark:bg-[#0a0f0a]/50">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
                           {/* CREAR HÁBITO */}
                           <div className="space-y-5 p-8 rounded-[2rem] bg-[#3a5a40]/5 dark:bg-[#3a5a40]/10 border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20">
@@ -298,7 +319,7 @@ export default function Home() {
 
                     {/* SECCIÓN HÁBITOS DIARIOS */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2">
-                       <h3 className="text-4xl font-black text-[#283618] dark:text-[#fefae0] tracking-tighter uppercase">
+                       <h3 className="text-3xl sm:text-4xl font-black text-[#283618] dark:text-[#fefae0] tracking-tighter uppercase">
                           Hábitos Diarios
                        </h3>
                        <div className="flex items-center gap-4">
@@ -402,9 +423,13 @@ export default function Home() {
                               Últimos 365 días
                            </span>
                         </div>
-                        <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50 flex flex-col gap-10">
-                           <GlobalHeatmap />
-                           <MoodHeatmap />
+                        <CardContent className="p-4 sm:p-10 bg-white dark:bg-[#0a0f0a]/50 flex flex-col gap-6 sm:gap-10">
+                           <div className="overflow-x-auto pb-4">
+                              <GlobalHeatmap />
+                           </div>
+                           <div className="overflow-x-auto pb-4">
+                              <MoodHeatmap />
+                           </div>
                         </CardContent>
                      </Card>
                  </div>
@@ -424,15 +449,15 @@ export default function Home() {
 
                     {/* Header */}
                     <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
-                      <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-8 sm:px-12 py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
-                        <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
-                        <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-4 uppercase relative z-10">
-                           <LayoutDashboard className="w-10 h-10 text-white/50" /> Evolución
-                        </h2>
-                        <span className="relative z-10 px-5 py-2 bg-white/10 border border-white/10 rounded-[2rem] text-[11px] font-black uppercase text-white/80 tracking-widest">
-                           Tu progreso global
-                        </span>
-                      </div>
+                       <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-6 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
+                         <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
+                         <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase relative z-10">
+                            <LayoutDashboard className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Evolución
+                         </h2>
+                         <span className="relative z-10 w-fit px-4 sm:px-5 py-2 bg-white/10 border border-white/10 rounded-[2rem] text-[10px] sm:text-[11px] font-black uppercase text-white/80 tracking-widest">
+                            Tu progreso global
+                         </span>
+                       </div>
                       <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                           {/* Stat: Hábitos */}
@@ -440,30 +465,30 @@ export default function Home() {
                             <div className="w-14 h-14 bg-[#3a5a40]/10 rounded-[1.2rem] flex items-center justify-center flex-shrink-0">
                               <Target className="w-7 h-7 text-[#3a5a40]" />
                             </div>
-                            <div>
-                              <p className="text-[11px] font-black text-[#3a5a40] dark:text-[#a3b18a] uppercase tracking-widest opacity-70">Hábitos</p>
-                              <h4 className="text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{habits.length}</h4>
-                            </div>
+                             <div>
+                               <p className="text-[10px] sm:text-[11px] font-black text-[#3a5a40] dark:text-[#a3b18a] uppercase tracking-widest opacity-70">Hábitos</p>
+                               <h4 className="text-4xl sm:text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{habits.length}</h4>
+                             </div>
                           </div>
                           {/* Stat: Días */}
                           <div className="flex items-center gap-5 p-6 rounded-[1.5rem] bg-[#a47148]/5 border-2 border-[#a47148]/10 dark:border-[#a47148]/20 group hover:border-[#a47148]/30 transition-all">
                             <div className="w-14 h-14 bg-[#a47148]/10 rounded-[1.2rem] flex items-center justify-center flex-shrink-0">
                               <Flame className="w-7 h-7 text-[#a47148]" />
                             </div>
-                            <div>
-                              <p className="text-[11px] font-black text-[#a47148] uppercase tracking-widest opacity-70">Días completados</p>
-                              <h4 className="text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{habitLogs.length}</h4>
-                            </div>
+                             <div>
+                               <p className="text-[10px] sm:text-[11px] font-black text-[#a47148] uppercase tracking-widest opacity-70">Días completados</p>
+                               <h4 className="text-4xl sm:text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{habitLogs.length}</h4>
+                             </div>
                           </div>
                           {/* Stat: Notas */}
                           <div className="flex items-center gap-5 p-6 rounded-[1.5rem] bg-[#588157]/5 border-2 border-[#588157]/10 dark:border-[#588157]/20 group hover:border-[#588157]/30 transition-all">
                             <div className="w-14 h-14 bg-[#588157]/10 rounded-[1.2rem] flex items-center justify-center flex-shrink-0">
                               <Brain className="w-7 h-7 text-[#588157]" />
                             </div>
-                            <div>
-                              <p className="text-[11px] font-black text-[#588157] uppercase tracking-widest opacity-70">Ideas Registradas</p>
-                              <h4 className="text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{useStore.getState().notes.length}</h4>
-                            </div>
+                             <div>
+                               <p className="text-[10px] sm:text-[11px] font-black text-[#588157] uppercase tracking-widest opacity-70">Ideas Registradas</p>
+                               <h4 className="text-4xl sm:text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{useStore.getState().notes.length}</h4>
+                             </div>
                           </div>
                         </div>
                       </CardContent>
@@ -482,21 +507,21 @@ export default function Home() {
       </motion.div>
 
       {/* DIALOG DE PROGRAMACIÓN */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] border-0 shadow-2xl bg-white dark:bg-[#1b221b] p-0 w-full max-w-md overflow-hidden">
-          <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#283618] dark:to-[#344e41] px-10 py-8 relative overflow-hidden">
+       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="rounded-[2rem] sm:rounded-[2.5rem] border-0 shadow-2xl bg-white dark:bg-[#1b221b] p-0 w-[95vw] max-w-md overflow-hidden">
+          <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#283618] dark:to-[#344e41] px-6 sm:px-10 py-6 sm:py-8 relative overflow-hidden">
             <div className="absolute top-[-30%] right-[-10%] w-32 h-32 bg-white/10 blur-2xl rounded-full pointer-events-none" />
-            <DialogHeader className="relative z-10">
-              <DialogTitle className="text-3xl font-black text-white tracking-tighter flex items-center gap-4 uppercase leading-none">
-                <CalendarDays className="w-8 h-8 opacity-90" /> Nuevo Evento
+            <DialogHeader className="relative z-10 text-left">
+              <DialogTitle className="text-2xl sm:text-3xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase leading-none">
+                <CalendarDays className="w-7 h-7 sm:w-8 sm:h-8 opacity-90" /> Nuevo Evento
               </DialogTitle>
-              <DialogDescription className="font-bold text-white/80 text-sm flex items-center gap-2 uppercase tracking-widest mt-2">
+              <DialogDescription className="font-bold text-white/80 text-[12px] sm:text-sm flex items-center gap-2 uppercase tracking-widest mt-2">
                  {format(selectedDateStr ? new Date(selectedDateStr) : new Date(), 'EEEE, dd MMM yyyy')}
               </DialogDescription>
             </DialogHeader>
           </div>
           
-          <div className="p-10 space-y-8 bg-gradient-to-b from-transparent to-[#dad7cd]/10 dark:to-transparent">
+          <div className="p-6 sm:p-10 space-y-6 sm:space-y-8 bg-gradient-to-b from-transparent to-[#dad7cd]/10 dark:to-transparent">
             <div className="space-y-4">
                <label className="text-xs font-black uppercase tracking-widest text-[#3a5a40] dark:text-[#a3b18a] ml-4 opacity-70">
                  Título del Compromiso
