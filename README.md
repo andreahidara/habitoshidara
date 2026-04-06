@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 Mi Habit Tracker
 
-## Getting Started
+Un sitio web hiper-personalizado y profesional para rastrear tus tareas diarias, construir buenos hábitos, y visualizar tu progreso a lo largo del tiempo.
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dashboard Unificado**: Una interfaz estilo Bento-Box que agrupa todo tu ecosistema de productividad.
+- **Gráficos de Contribución (Heatmap)**: Visualización inspirada en GitHub de la consistencia de cada hábito en los últimos meses.
+- **Calendario Interactivo**: Un `FullCalendar` integrado gigante donde al hacer clic en cualquier día, un diálogo de Shadcn permite añadir notas y eventos.
+- **Dark Mode**: Soporte nativo para modo oscuro con un solo clic.
+- **Persistencia Asíncrona (Supabase)**: Usa `Zustand` para manejar todo el estado y se comunica transparentemente con una base de datos PostgreSQL de Supabase.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (Botones, Checkboxes, Dialogos, etc.)
+- **Calendario**: [@fullcalendar/react](https://fullcalendar.io/)
+- **State Management**: [Zustand](https://docs.pmnd.rs/zustand/)
+- **Base de Datos**: [Supabase](https://supabase.com/) & PostgreSQL
+- **Fechas**: `date-fns`
+- **Iconos**: `lucide-react`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ⚙️ Configuración Local
 
-## Learn More
+1. Instala las dependencias:
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Configura tu Base de Datos:
+   - Crea un proyecto en [Supabase](https://supabase.com).
+   - Ve a la pestaña de `SQL Editor` y ejecuta todo el código que se encuentra en `supabase-schema.sql`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Variables de Entorno:
+   - Crea un archivo `.env.local` en la raíz del proyecto.
+   - Pega tu URL y tu Anon Key como indica el archivo:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL="tu_url"
+   NEXT_PUBLIC_SUPABASE_ANON_KEY="tu_anon_key"
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Corre el proyecto:
+   ```bash
+   npm run dev
+   ```
+   > Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la app funcionando.
