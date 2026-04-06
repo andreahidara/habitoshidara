@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import React, { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,14 +22,14 @@ import { HabitHeatmap } from '@/components/HabitHeatmap'
 import { MoodSelector } from '@/components/MoodSelector'
 import { DashboardSkeleton } from '@/components/DashboardSkeleton'
 import confetti from 'canvas-confetti'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 
-const AuthScreen = dynamic(() => import('@/components/AuthScreen').then(mod => mod.AuthScreen));
-const AnalyticsDashboard = dynamic(() => import('@/components/AnalyticsDashboard').then(mod => mod.AnalyticsDashboard));
-const GlobalHeatmap = dynamic(() => import('@/components/GlobalHeatmap').then(mod => mod.GlobalHeatmap), { ssr: false });
-const MoodHeatmap = dynamic(() => import('@/components/MoodHeatmap').then(mod => mod.MoodHeatmap), { ssr: false });
-const EventHeatmap = dynamic(() => import('@/components/EventHeatmap').then(mod => mod.EventHeatmap), { ssr: false });
-const BrainDump = dynamic(() => import('@/components/BrainDump').then(mod => mod.BrainDump));
+const AuthScreen = dynamicImport(() => import('@/components/AuthScreen').then(mod => mod.AuthScreen));
+const AnalyticsDashboard = dynamicImport(() => import('@/components/AnalyticsDashboard').then(mod => mod.AnalyticsDashboard));
+const GlobalHeatmap = dynamicImport(() => import('@/components/GlobalHeatmap').then(mod => mod.GlobalHeatmap), { ssr: false });
+const MoodHeatmap = dynamicImport(() => import('@/components/MoodHeatmap').then(mod => mod.MoodHeatmap), { ssr: false });
+const EventHeatmap = dynamicImport(() => import('@/components/EventHeatmap').then(mod => mod.EventHeatmap), { ssr: false });
+const BrainDump = dynamicImport(() => import('@/components/BrainDump').then(mod => mod.BrainDump));
 
 // Variantes de animación
 const containerVariants: Variants = {
