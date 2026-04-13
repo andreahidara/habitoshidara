@@ -5,8 +5,9 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle2, Trash2, Flame } from "lucide-react"
 import { HabitHeatmap } from '@/components/HabitHeatmap'
+import type { Variants } from "framer-motion"
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   show: { y: 0, opacity: 1, transition: { type: "spring", bounce: 0.4 } }
 }
