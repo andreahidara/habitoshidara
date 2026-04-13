@@ -97,8 +97,13 @@ export const useStore = create<AppState>((set, get) => ({
   checkUser: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     set({ user: session?.user || null, isCheckingSession: false });
+
+    // Si ya hay sesión al cargar la página, cargar datos inmediatamente
+    if (session?.user) {
+      get().fetchData();
+    }
     
-    // Escuchar cambios de sesión
+    // Escuchar cambios de sesión (login/logout)
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user || null, isCheckingSession: false });
       if(session?.user) get().fetchData();
