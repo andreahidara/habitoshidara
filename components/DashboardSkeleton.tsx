@@ -19,7 +19,20 @@ function SkeletonItem({ height = "h-40", className = "" }) {
   )
 }
 
-export function DashboardSkeleton({ view = 'home' }: { view: 'home' | 'habits' | 'brain' | 'analytics' }) {
+export function DashboardSkeleton({ view = 'home' }: { view: 'home' | 'habits' | 'brain' | 'analytics' | 'tasks' }) {
+  if (view === 'tasks') {
+    return (
+      <div className="flex flex-col gap-8 w-full max-w-4xl mx-auto">
+         <SkeletonItem height="h-32" />
+         <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+               <SkeletonItem key={i} height="h-16" className="rounded-2xl" />
+            ))}
+         </div>
+      </div>
+    )
+  }
+
   if (view === 'home') {
     return (
       <div className="flex flex-col md:flex-row gap-6 w-full">

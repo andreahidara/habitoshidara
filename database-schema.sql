@@ -1,5 +1,5 @@
-
 -- 🧨 LIMPIEZA INICIAL (Opcional, borra tablas anteriores para evitar conflictos)
+DROP TABLE IF EXISTS public.tasks CASCADE;
 DROP TABLE IF EXISTS public.mood_logs CASCADE;
 DROP TABLE IF EXISTS public.notes CASCADE;
 DROP TABLE IF EXISTS public.habit_logs CASCADE;
@@ -65,6 +65,17 @@ CREATE TABLE public.mood_logs (
 );
 
 -- ==========================================
+-- 6. TABLA DE TAREAS (TODO LIST)
+-- ==========================================
+CREATE TABLE public.tasks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  is_completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ==========================================
 -- 🔒 ACTIVAR SEGURIDAD (RLS)
 -- ==========================================
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
@@ -72,6 +83,7 @@ ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mood_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
 -- 🔐 POLÍTICAS DE PROTECCIÓN (Sólo el dueño puede ver/borrar)
@@ -91,3 +103,6 @@ CREATE POLICY "Gestionar propias notas" ON public.notes FOR ALL USING (auth.uid(
 
 -- Polìticas para Mood Logs
 CREATE POLICY "Gestionar propios moods" ON public.mood_logs FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Polìticas para Tasks
+CREATE POLICY "Gestionar propias tareas" ON public.tasks FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);

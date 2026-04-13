@@ -34,12 +34,20 @@ type MoodLog = {
   date: string;
 };
 
+type Task = {
+  id: string;
+  title: string;
+  is_completed: boolean;
+  created_at: string;
+};
+
 interface AppState {
   events: Event[];
   habits: Habit[];
   habitLogs: HabitLog[];
   notes: Note[];
   moodLogs: MoodLog[];
+  tasks: Task[];
   isLoading: boolean;
   isCheckingSession: boolean;
   
@@ -68,6 +76,11 @@ interface AppState {
 
   // Mood Tracker
   setDailyMood: (mood: string, date: string) => Promise<void>;
+
+  // Tasks
+  addTask: (title: string) => Promise<void>;
+  toggleTask: (id: string, currentStatus: boolean) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -76,6 +89,7 @@ export const useStore = create<AppState>((set, get) => ({
   habitLogs: [],
   notes: [],
   moodLogs: [],
+  tasks: [],
   isLoading: false,
   isCheckingSession: true,
   user: null,
@@ -88,7 +102,7 @@ export const useStore = create<AppState>((set, get) => ({
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user || null, isCheckingSession: false });
       if(session?.user) get().fetchData();
-      else set({ events: [], habits: [], habitLogs: [], notes: [], moodLogs: [] });
+      else set({ events: [], habits: [], habitLogs: [], notes: [], moodLogs: [], tasks: [] });
     });
   },
 
@@ -111,13 +125,20 @@ export const useStore = create<AppState>((set, get) => ({
     if (!user) return;
     
     set({ isLoading: true });
-    const [eventsRes, habitsRes, logsRes, notesRes, moodsRes] = await Promise.all([
+    const [eventsRes, habitsRes, logsRes, notesRes, moodsRes, tasksRes] = await Promise.all([
       supabase.from('events').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
       supabase.from('habits').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
       supabase.from('habit_logs').select('*').eq('user_id', user.id),
       supabase.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('mood_logs').select('*').eq('user_id', user.id)
+      supabase.from('mood_logs').select('*').eq('user_id', user.id),
+      supabase.from('tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
     ]);
+
+    // Log potential errors without blocking the whole UI
+    const results = [eventsRes, habitsRes, logsRes, notesRes, moodsRes, tasksRes];
+    results.forEach((res, i) => {
+      if (res.error) console.error(`Error fetching table index ${i}:`, res.error);
+    });
 
     set({ 
       events: eventsRes.data || [], 
@@ -125,6 +146,7 @@ export const useStore = create<AppState>((set, get) => ({
       habitLogs: logsRes.data || [],
       notes: notesRes.data || [],
       moodLogs: moodsRes.data || [],
+      tasks: tasksRes.data || [],
       isLoading: false
     });
   },
@@ -215,6 +237,29 @@ export const useStore = create<AppState>((set, get) => ({
       if (!error && data) {
         set((state) => ({ moodLogs: [...state.moodLogs, data[0]] }));
       }
+    }
+  },
+
+  addTask: async (title) => {
+    const user = get().user;
+    if(!user) return;
+    const { data, error } = await supabase.from('tasks').insert([{ title, user_id: user.id }]).select();
+    if (!error && data) {
+      set((state) => ({ tasks: [data[0], ...state.tasks] }));
+    }
+  },
+
+  toggleTask: async (id, currentStatus) => {
+    const { data, error } = await supabase.from('tasks').update({ is_completed: !currentStatus }).eq('id', id).select();
+    if (!error && data) {
+      set((state) => ({ tasks: state.tasks.map(t => t.id === id ? data[0] : t) }));
+    }
+  },
+
+  deleteTask: async (id) => {
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (!error) {
+      set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) }));
     }
   }
 }));
