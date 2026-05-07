@@ -2,9 +2,10 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Toast } from "@/components/ui/Toast"
 import { Target, Flame, Moon, Sun, LayoutDashboard, Brain, Activity, Loader2, Leaf, ListTodo, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
 import { motion, AnimatePresence } from "framer-motion"
@@ -23,13 +24,15 @@ const HabitsView = dynamicImport(() => import('@/components/HabitsView').then(mo
 const BrainDump = dynamicImport(() => import('@/components/BrainDump').then(mod => mod.BrainDump));
 const TaskSection = dynamicImport(() => import('@/components/TaskSection').then(mod => mod.TaskSection));
 
-// Variantes de animación
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+type TabId = 'home' | 'habits' | 'tasks' | 'brain' | 'analytics';
 
-type TabId = 'home' | 'habits' | 'brain' | 'analytics' | 'tasks';
+const TAB_ORDER: TabId[] = ['home', 'habits', 'tasks', 'brain', 'analytics'];
+
+const tabVariants: Variants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { type: 'spring' as const, bounce: 0.15, duration: 0.45 } },
+  exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0, transition: { duration: 0.2 } }),
+};
 
 /**
  * PALETA HIGH-CONTRAST MOSS (V5.2)
@@ -41,19 +44,28 @@ type TabId = 'home' | 'habits' | 'brain' | 'analytics' | 'tasks';
  */
 
 export default function Home() {
-  const { 
+  const {
     user, checkUser, signOut, isCheckingSession,
-    habits, habitLogs, isLoading 
+    habits, habitLogs, notes, isLoading
   } = useStore();
-  
+
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<TabId>('home');
-  const [isMounted, setIsMounted] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    if (initialized.current) return;
+    initialized.current = true;
     checkUser();
   }, [checkUser]);
+
+  const handleTabChange = (newTab: TabId) => {
+    const currentIndex = TAB_ORDER.indexOf(activeTab);
+    const newIndex = TAB_ORDER.indexOf(newTab);
+    setDirection(newIndex >= currentIndex ? 1 : -1);
+    setActiveTab(newTab);
+  };
 
   const tabs = [
     { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
@@ -63,7 +75,7 @@ export default function Home() {
     { id: 'analytics', label: 'Estadísticas', icon: Activity },
   ] as const;
 
-  if (!isMounted || (isCheckingSession && !user)) {
+  if (isCheckingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#e9e0d8] dark:bg-[#0a0f0a]">
          <div className="flex flex-col items-center gap-4">
@@ -94,7 +106,7 @@ export default function Home() {
                const Icon = tab.icon;
                const isActive = activeTab === tab.id;
                return (
-                 <button key={tab.id} onClick={() => setActiveTab(tab.id as TabId)} className={`relative flex items-center gap-3 px-8 py-3.5 rounded-[2rem] text-sm font-black transition-all ${isActive ? 'text-white dark:text-[#a3b18a] z-10' : 'text-[#3a5a40] dark:text-[#588157] hover:text-[#344e41] dark:hover:text-[#dad7cd]'}`}>
+                 <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex items-center gap-3 px-8 py-3.5 rounded-[2rem] text-sm font-black transition-all ${isActive ? 'text-white dark:text-[#a3b18a] z-10' : 'text-[#3a5a40] dark:text-[#588157] hover:text-[#344e41] dark:hover:text-[#dad7cd]'}`}>
                    {isActive && ( <motion.div layoutId="activeTabDesktop" className="absolute inset-0 bg-[#3a5a40] dark:bg-[#344e41] shadow-2xl rounded-[2rem]" transition={{ type: "spring", bounce: 0.1, duration: 0.7 }} /> )}
                    <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'scale-110' : ''}`} />
                    <span className="relative z-10">{tab.label}</span>
@@ -104,11 +116,11 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="rounded-full hover:bg-[#dad7cd]/40 text-[#3a5a40]">
+            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'} className="rounded-full hover:bg-[#dad7cd]/40 text-[#3a5a40]">
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => signOut()} className="rounded-full text-red-600 hover:bg-red-50"> <LogOut className="h-5 w-5" /> </Button>
+            <Button variant="ghost" size="icon" onClick={() => signOut()} aria-label="Cerrar sesión" className="rounded-full text-red-600 hover:bg-red-50"> <LogOut className="h-5 w-5" /> </Button>
           </div>
         </div>
       </header>
@@ -119,7 +131,7 @@ export default function Home() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as TabId)} className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-14 rounded-[2rem] transition-all ${isActive ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#3a5a40]/50 dark:text-[#588157]/50'}`}>
+            <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-14 rounded-[2rem] transition-all ${isActive ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#3a5a40]/50 dark:text-[#588157]/50'}`}>
               <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-[#3a5a40]/10' : ''}`}>
                 <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : 'scale-100 opacity-70'}`} />
               </div>
@@ -132,21 +144,21 @@ export default function Home() {
         })}
       </nav>
 
-      <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-[1600px] mx-auto flex flex-col gap-12 mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
-        
-        <AnimatePresence mode="wait">
+      <div className="max-w-[1600px] mx-auto flex flex-col gap-12 mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
+
+        <AnimatePresence mode="wait" custom={direction}>
           {isLoading ? (
             <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                <DashboardSkeleton view={activeTab} />
             </motion.div>
           ) : (
-            <motion.div 
-              key={activeTab} 
-              variants={containerVariants}
-              initial="hidden" 
-              animate="show" 
-              exit={{ opacity: 0, x: -20 }} 
-              transition={{ duration: 0.3 }} 
+            <motion.div
+              key={activeTab}
+              custom={direction}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
               className="w-full"
             >
               
@@ -242,7 +254,7 @@ export default function Home() {
                             </div>
                              <div>
                                <p className="text-[10px] sm:text-[11px] font-black text-[#588157] uppercase tracking-widest opacity-70">Ideas Registradas</p>
-                               <h4 className="text-4xl sm:text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{useStore.getState().notes.length}</h4>
+                               <h4 className="text-4xl sm:text-5xl font-black text-[#283618] dark:text-[#dad7cd] leading-none mt-1">{notes.length}</h4>
                              </div>
                           </div>
                         </div>
@@ -259,7 +271,9 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-      </motion.div>
+      </div>
+
+      <Toast />
     </main>
   );
 }

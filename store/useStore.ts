@@ -34,12 +34,17 @@ type MoodLog = {
   date: string;
 };
 
+type TaskPriority = 'high' | 'medium' | 'low';
+
 type Task = {
   id: string;
   title: string;
   is_completed: boolean;
+  priority: TaskPriority;
   created_at: string;
 };
+
+type Toast = { message: string; type: 'success' | 'error' } | null;
 
 interface AppState {
   events: Event[];
@@ -50,12 +55,15 @@ interface AppState {
   tasks: Task[];
   isLoading: boolean;
   isCheckingSession: boolean;
-  
+  toast: Toast;
+
   user: User | null;
   checkUser: () => Promise<void>;
   signIn: (email: string, pass: string) => Promise<{error: string | null}>;
   signUp: (email: string, pass: string) => Promise<{error: string | null}>;
   signOut: () => Promise<void>;
+  showToast: (message: string, type?: 'success' | 'error') => void;
+  clearToast: () => void;
 
   fetchData: () => Promise<void>;
   
@@ -78,7 +86,7 @@ interface AppState {
   setDailyMood: (mood: string, date: string) => Promise<void>;
 
   // Tasks
-  addTask: (title: string) => Promise<void>;
+  addTask: (title: string, priority?: TaskPriority) => Promise<void>;
   toggleTask: (id: string, currentStatus: boolean) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
 }
@@ -92,7 +100,14 @@ export const useStore = create<AppState>((set, get) => ({
   tasks: [],
   isLoading: false,
   isCheckingSession: true,
+  toast: null,
   user: null,
+
+  showToast: (message, type = 'success') => {
+    set({ toast: { message, type } });
+    setTimeout(() => set({ toast: null }), 3500);
+  },
+  clearToast: () => set({ toast: null }),
 
   checkUser: async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -162,6 +177,8 @@ export const useStore = create<AppState>((set, get) => ({
     const { data, error } = await supabase.from('events').insert([{ ...event, user_id: user.id }]).select();
     if (!error && data) {
       set((state) => ({ events: [...state.events, data[0]] }));
+    } else if (error) {
+      get().showToast('Error al guardar el evento', 'error');
     }
   },
 
@@ -169,6 +186,8 @@ export const useStore = create<AppState>((set, get) => ({
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (!error) {
       set((state) => ({ events: state.events.filter(e => e.id !== id) }));
+    } else {
+      get().showToast('Error al eliminar el evento', 'error');
     }
   },
 
@@ -178,34 +197,42 @@ export const useStore = create<AppState>((set, get) => ({
     const { data, error } = await supabase.from('habits').insert([{ ...habit, user_id: user.id }]).select();
     if (!error && data) {
       set((state) => ({ habits: [...state.habits, data[0]] }));
+    } else if (error) {
+      get().showToast('Error al crear el hábito', 'error');
     }
   },
 
   deleteHabit: async (id) => {
     const { error } = await supabase.from('habits').delete().eq('id', id);
     if (!error) {
-      set((state) => ({ 
+      set((state) => ({
         habits: state.habits.filter(h => h.id !== id),
         habitLogs: state.habitLogs.filter(l => l.habit_id !== id)
       }));
+    } else {
+      get().showToast('Error al eliminar el hábito', 'error');
     }
   },
 
   toggleHabitLog: async (habitId, date) => {
     const state = get();
     if(!state.user) return;
-    
+
     const existingLog = state.habitLogs.find(l => l.habit_id === habitId && l.completed_date === date);
 
     if (existingLog) {
       const { error } = await supabase.from('habit_logs').delete().eq('id', existingLog.id);
       if (!error) {
          set((state) => ({ habitLogs: state.habitLogs.filter(l => l.id !== existingLog.id) }));
+      } else {
+         get().showToast('Error al actualizar el hábito', 'error');
       }
     } else {
-      const { data, error } = await supabase.from('habit_logs').insert([{ habit_id: habitId, completed_date: date, user_id: state.user.id }]).select();
+      const { data, error } = await supabase.from('habit_logs').insert([{ habit_id: habitId, completed_date: date, user_id: state.user!.id }]).select();
       if (!error && data) {
          set((state) => ({ habitLogs: [...state.habitLogs, data[0]] }));
+      } else {
+         get().showToast('Error al registrar el hábito', 'error');
       }
     }
   },
@@ -216,6 +243,8 @@ export const useStore = create<AppState>((set, get) => ({
     const { data, error } = await supabase.from('notes').insert([{ content, user_id: user.id }]).select();
     if (!error && data) {
       set((state) => ({ notes: [data[0], ...state.notes] }));
+    } else if (error) {
+      get().showToast('Error al guardar la nota', 'error');
     }
   },
 
@@ -223,34 +252,42 @@ export const useStore = create<AppState>((set, get) => ({
     const { error } = await supabase.from('notes').delete().eq('id', id);
     if (!error) {
       set((state) => ({ notes: state.notes.filter(n => n.id !== id) }));
+    } else {
+      get().showToast('Error al eliminar la nota', 'error');
     }
   },
 
   setDailyMood: async (mood, date) => {
     const user = get().user;
     if(!user) return;
-    
+
     const existing = get().moodLogs.find(m => m.date === date);
-    
+
     if (existing) {
       const { data, error } = await supabase.from('mood_logs').update({ mood }).eq('id', existing.id).select();
       if (!error && data) {
         set((state) => ({ moodLogs: state.moodLogs.map(m => m.date === date ? data[0] : m) }));
+      } else if (error) {
+        get().showToast('Error al guardar el estado de ánimo', 'error');
       }
     } else {
       const { data, error } = await supabase.from('mood_logs').insert([{ mood, date, user_id: user.id }]).select();
       if (!error && data) {
         set((state) => ({ moodLogs: [...state.moodLogs, data[0]] }));
+      } else if (error) {
+        get().showToast('Error al guardar el estado de ánimo', 'error');
       }
     }
   },
 
-  addTask: async (title) => {
+  addTask: async (title, priority = 'medium') => {
     const user = get().user;
     if(!user) return;
-    const { data, error } = await supabase.from('tasks').insert([{ title, user_id: user.id }]).select();
+    const { data, error } = await supabase.from('tasks').insert([{ title, priority, user_id: user.id }]).select();
     if (!error && data) {
       set((state) => ({ tasks: [data[0], ...state.tasks] }));
+    } else if (error) {
+      get().showToast('Error al añadir la tarea', 'error');
     }
   },
 
@@ -258,6 +295,8 @@ export const useStore = create<AppState>((set, get) => ({
     const { data, error } = await supabase.from('tasks').update({ is_completed: !currentStatus }).eq('id', id).select();
     if (!error && data) {
       set((state) => ({ tasks: state.tasks.map(t => t.id === id ? data[0] : t) }));
+    } else if (error) {
+      get().showToast('Error al actualizar la tarea', 'error');
     }
   },
 
@@ -265,6 +304,8 @@ export const useStore = create<AppState>((set, get) => ({
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (!error) {
       set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) }));
+    } else {
+      get().showToast('Error al eliminar la tarea', 'error');
     }
   }
 }));

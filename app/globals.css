@@ -128,7 +128,23 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
+
+  :focus-visible {
+    outline: 2px solid #3a5a40;
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+
+  .dark :focus-visible {
+    outline-color: #a3b18a;
+  }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }
 
 /* FullCalendar Aesthetics Overrides (V5.4 Moss/Clay) */
@@ -227,4 +243,20 @@
 
 .input-base {
   @apply bg-[#dad7cd]/20 dark:bg-black/50 rounded-[2rem] border-2 border-[#3a5a40]/10 text-lg h-14 px-8 focus:ring-8 focus:ring-[#3a5a40]/10 focus:border-[#3a5a40] transition-all outline-none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3a5a40;
+  opacity: 0.3;
+  border-radius: 999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #588157;
 }

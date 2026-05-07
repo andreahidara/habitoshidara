@@ -49,7 +49,7 @@ export function BrainDump() {
                      />
                      {newNote.length > 0 && (
                         <div className="absolute right-4 bottom-4 text-[#a47148] font-black text-[9px] px-2 py-1 bg-[#a47148]/10 rounded-lg">
-                           {newNote.length} CHRS
+                           {newNote.length} car.
                         </div>
                      )}
                   </div>
@@ -106,9 +106,10 @@ export function BrainDump() {
                                     {format(new Date(note.created_at), 'HH:mm')}
                                  </span>
                               </div>
-                              <button 
+                              <button
                                  onClick={() => deleteNote(note.id)}
-                                 className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all sm:opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                 aria-label="Eliminar nota"
+                                 className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
                               >
                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </button>

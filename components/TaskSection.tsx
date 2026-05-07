@@ -5,18 +5,30 @@ import { useStore } from "@/store/useStore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList } from "lucide-react"
+import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList, ChevronUp, Minus, ChevronDown } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
+
+type Priority = 'high' | 'medium' | 'low'
+
+const PRIORITY_CONFIG: Record<Priority, { label: string; Icon: React.ComponentType<{ className?: string }>; ring: string; badge: string; dot: string }> = {
+  high:   { label: 'Alta',  Icon: ChevronUp,   ring: 'border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',          badge: 'bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border-red-200 dark:border-red-800',     dot: 'bg-red-500' },
+  medium: { label: 'Media', Icon: Minus,        ring: 'border-[#a47148]/40 bg-[#a47148]/10 dark:bg-[#a47148]/20 text-[#a47148]',             badge: 'bg-[#a47148]/10 dark:bg-[#a47148]/20 text-[#a47148] border-[#a47148]/30',                              dot: 'bg-[#a47148]' },
+  low:    { label: 'Baja',  Icon: ChevronDown, ring: 'border-[#3a5a40]/30 bg-[#3a5a40]/10 dark:bg-[#3a5a40]/20 text-[#3a5a40] dark:text-[#a3b18a]', badge: 'bg-[#3a5a40]/10 dark:bg-[#3a5a40]/20 text-[#3a5a40] dark:text-[#a3b18a] border-[#3a5a40]/20', dot: 'bg-[#3a5a40]' },
+}
+
+const PRIORITY_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
 
 export function TaskSection() {
   const { tasks, addTask, toggleTask, deleteTask } = useStore()
   const [newTask, setNewTask] = useState("")
+  const [newPriority, setNewPriority] = useState<Priority>('medium')
 
   const handleAdd = async () => {
     if (newTask.trim() === "") return
-    await addTask(newTask)
+    await addTask(newTask, newPriority)
     setNewTask("")
+    setNewPriority('medium')
   }
 
   const handleToggle = async (id: string, isCompleted: boolean) => {
@@ -46,12 +58,31 @@ export function TaskSection() {
           </div>
         </div>
         
-        <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50 flex flex-col gap-6">
+        <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50 flex flex-col gap-4">
+          {/* Priority selector */}
+          <div className="flex items-center gap-2">
+            {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => {
+              const { label, Icon, ring } = PRIORITY_CONFIG[p]
+              const active = newPriority === p
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setNewPriority(p)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-[1rem] border-2 text-xs font-black uppercase tracking-widest transition-all ${
+                    active ? ring : 'border-transparent bg-[#f8f5f0] dark:bg-[#1b221b] text-[#344e41]/40 dark:text-[#dad7cd]/30 hover:opacity-70'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />{label}
+                </button>
+              )
+            })}
+          </div>
           <div className="flex gap-3">
              <div className="relative flex-1">
-                <Input 
-                   placeholder="¿Qué quieres conseguir hoy?" 
-                   value={newTask} 
+                <Input
+                   placeholder="¿Qué quieres conseguir hoy?"
+                   value={newTask}
                    onChange={(e) => setNewTask(e.target.value)}
                    className="w-full bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.5rem] h-14 sm:h-16 px-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all placeholder:opacity-30 shadow-inner"
                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -80,47 +111,68 @@ export function TaskSection() {
               <p className="text-[#344e41]/60 dark:text-[#a3b18a] font-bold max-w-xs mx-auto uppercase text-xs tracking-widest">Añade tu primera tarea arriba para empezar a tachar objetivos.</p>
             </motion.div>
           ) : (
-            tasks.map((task) => (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                layout
-              >
-                <Card className={`group relative overflow-hidden border-2 transition-all duration-300 rounded-[1.5rem] sm:rounded-[2rem] p-0 ${
-                  task.is_completed 
-                    ? 'bg-[#3a5a40]/5 border-[#3a5a40]/20 dark:border-[#3a5a40]/30' 
-                    : 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl'
-                }`}>
-                  <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
-                    <button 
-                      onClick={() => handleToggle(task.id, task.is_completed)}
-                      className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
-                        task.is_completed 
-                          ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30' 
-                          : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
-                      }`}
-                    >
-                      {task.is_completed ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" /> : <Square className="w-5 h-5 sm:w-6 sm:h-6" />}
-                    </button>
-                    
-                    <span className={`flex-1 font-black text-base sm:text-xl tracking-tight transition-all truncate ${
-                      task.is_completed ? 'text-[#3a5a40]/40 line-through' : 'text-[#344e41] dark:text-[#dad7cd]'
+            [...tasks]
+              .sort((a, b) => {
+                if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1
+                return PRIORITY_ORDER[a.priority ?? 'medium'] - PRIORITY_ORDER[b.priority ?? 'medium']
+              })
+              .map((task) => {
+                const pCfg = PRIORITY_CONFIG[task.priority ?? 'medium']
+                return (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    layout
+                  >
+                    <Card className={`group relative overflow-hidden border-2 transition-all duration-300 rounded-[1.5rem] sm:rounded-[2rem] p-0 border-l-4 ${
+                      task.is_completed
+                        ? 'bg-[#3a5a40]/5 border-[#3a5a40]/20 dark:border-[#3a5a40]/30 border-l-[#3a5a40]/30'
+                        : task.priority === 'high'
+                          ? 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl border-l-red-400'
+                          : task.priority === 'low'
+                            ? 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl border-l-[#3a5a40]'
+                            : 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl border-l-[#a47148]'
                     }`}>
-                      {task.title}
-                    </span>
+                      <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
+                        <button
+                          onClick={() => handleToggle(task.id, task.is_completed)}
+                          aria-label={task.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}
+                          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
+                            task.is_completed
+                              ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30'
+                              : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
+                          }`}
+                        >
+                          {task.is_completed ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" /> : <Square className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        </button>
 
-                    <button 
-                      onClick={() => deleteTask(task.id)}
-                      className="p-2 sm:p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
+                        <span className={`flex-1 font-black text-base sm:text-xl tracking-tight transition-all truncate ${
+                          task.is_completed ? 'text-[#3a5a40]/40 line-through' : 'text-[#344e41] dark:text-[#dad7cd]'
+                        }`}>
+                          {task.title}
+                        </span>
+
+                        {!task.is_completed && (
+                          <span className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest flex-shrink-0 ${pCfg.badge}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pCfg.dot}`} />
+                            {pCfg.label}
+                          </span>
+                        )}
+
+                        <button
+                          onClick={() => deleteTask(task.id)}
+                          aria-label="Eliminar tarea"
+                          className="p-2 sm:p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )
+              })
           )}
         </AnimatePresence>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Mi Habit Tracker",
-  description: "Sitio web personal para gestión de eventos y hábitos.",
+  description: "Tu centro personal de hábitos, tareas y bienestar diario.",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Mi Habit Tracker",
+    description: "Tu centro personal de hábitos, tareas y bienestar diario.",
+    type: "website",
+    locale: "es_ES",
+  },
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg",
+  },
 };
 
 import { ThemeProvider } from "./providers";
@@ -37,7 +49,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

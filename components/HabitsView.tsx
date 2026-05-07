@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Target, Flame, Plus, Sparkles, Leaf } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
-import { format } from 'date-fns'
+import { format, subDays } from 'date-fns'
 
 import { useStore } from "@/store/useStore"
 import { MoodSelector } from '@/components/MoodSelector'
@@ -51,7 +51,15 @@ export function HabitsView() {
     return habits.map(habit => {
       const logs = habitLogs.filter(log => log.habit_id === habit.id)
       const isCompletedToday = logs.some(log => log.completed_date === todayStr)
-      const streak = logs.length
+
+      const completedDates = new Set(logs.map(l => l.completed_date))
+      let streak = 0
+      let cursor = new Date(todayStr)
+      while (completedDates.has(format(cursor, 'yyyy-MM-dd'))) {
+        streak++
+        cursor = subDays(cursor, 1)
+      }
+
       return { ...habit, logs, isCompletedToday, streak }
     })
   }, [habits, habitLogs, todayStr])

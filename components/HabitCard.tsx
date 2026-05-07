@@ -58,9 +58,11 @@ export function HabitCard({ habit, onToggle, onDelete }: HabitCardProps) {
             }`}>{habit.icon}</div>
             <button
               onClick={() => onToggle(habit.id, habit.isCompletedToday)}
+              aria-label={habit.isCompletedToday ? `Desmarcar hábito ${habit.name}` : `Completar hábito ${habit.name}`}
+              title={habit.isCompletedToday ? 'Marcar como no completado' : 'Completar hoy'}
               className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                 habit.isCompletedToday
-                  ? 'bg-[#3a5a40] border-[#3a5a40] text-white shadow-md shadow-[#3a5a40]/30'
+                  ? 'bg-[#3a5a40] border-[#3a5a40] text-white shadow-md shadow-[#3a5a40]/30 hover:bg-red-500 hover:border-red-500'
                   : 'border-[#dad7cd] dark:border-[#3a5a40]/40 bg-white/50 dark:bg-black/20 hover:border-[#3a5a40] hover:bg-[#3a5a40]/10'
               }`}
             >
@@ -68,11 +70,16 @@ export function HabitCard({ habit, onToggle, onDelete }: HabitCardProps) {
             </button>
           </div>
 
-          {/* Habit name */}
-          <div className="px-6 pb-4 flex-1">
+          {/* Habit name + completed badge */}
+          <div className="px-6 pb-4 flex-1 flex flex-col gap-1.5">
             <span className={`font-black text-xl tracking-tight leading-snug block ${
-              habit.isCompletedToday ? 'text-[#3a5a40]/50 dark:text-[#a3b18a]/50 line-through' : 'text-[#344e41] dark:text-[#dad7cd]'
+              habit.isCompletedToday ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#344e41] dark:text-[#dad7cd]'
             }`}>{habit.name}</span>
+            {habit.isCompletedToday && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#3a5a40]/60 dark:text-[#a3b18a]/60">
+                ✓ completado hoy
+              </span>
+            )}
           </div>
 
           {/* Bottom section: heatmap + streak */}
@@ -89,7 +96,8 @@ export function HabitCard({ habit, onToggle, onDelete }: HabitCardProps) {
               </span>
               <button
                 onClick={() => onDelete(habit.id)}
-                className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all p-2 rounded-xl sm:opacity-0 sm:group-hover:opacity-100"
+                aria-label={`Eliminar hábito ${habit.name}`}
+                className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all p-2 rounded-xl opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <Trash2 className="w-4 h-4"/>
               </button>
