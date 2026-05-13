@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useCallback, memo } from 'react'
+import { useState, useCallback, memo, useMemo } from 'react'
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import { CheckCircle2, Trash2, Flame, Loader2 } from "lucide-react"
+import { CheckCircle2, Trash2, Flame, Loader2, Trophy } from "lucide-react"
 import { HabitHeatmap } from '@/components/HabitHeatmap'
+import { calculateBestStreak } from '@/lib/utils'
 import type { Variants } from "framer-motion"
 
 const itemVariants: Variants = {
@@ -30,6 +31,11 @@ interface HabitCardProps {
 
 function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitCardProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
+  const bestStreak = useMemo(() => {
+    const dates = new Set(habit.logs.map(l => l.completed_date))
+    return calculateBestStreak(dates)
+  }, [habit.logs])
 
   const handleDragEnd = useCallback((_e: unknown, info: { offset: { x: number } }) => {
     if (!isPending && info.offset.x > 80) onToggle(habit.id, habit.isCompletedToday)
@@ -108,17 +114,28 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
           <div className="px-6 pt-4 pb-6 border-t border-[#3a5a40]/10 dark:border-[#3a5a40]/15 bg-[#f8f5f0]/60 dark:bg-[#3a5a40]/10 rounded-b-[2rem]">
             <HabitHeatmap logs={habit.logs} />
             <div className="flex justify-between items-center mt-4">
-              {habit.streak > 0 ? (
-                <span className="text-xs font-black flex items-center gap-1.5 uppercase tracking-widest px-3 py-1.5 rounded-lg border text-[#a47148] bg-[#a47148]/5 border-[#a47148]/15">
-                  <Flame className="w-3.5 h-3.5 text-[#a47148]" />
-                  {habit.streak} D
-                </span>
-              ) : (
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#3a5a40]/20 dark:text-[#a3b18a]/20 flex items-center gap-1">
-                  <Flame className="w-3 h-3 opacity-30" aria-hidden="true" />
-                  0
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {habit.streak > 0 ? (
+                  <span className="text-xs font-black flex items-center gap-1.5 uppercase tracking-widest px-3 py-1.5 rounded-lg border text-[#a47148] bg-[#a47148]/5 border-[#a47148]/15">
+                    <Flame className="w-3.5 h-3.5 text-[#a47148]" />
+                    {habit.streak} D
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#3a5a40]/20 dark:text-[#a3b18a]/20 flex items-center gap-1">
+                    <Flame className="w-3 h-3 opacity-30" aria-hidden="true" />
+                    0
+                  </span>
+                )}
+                {bestStreak > habit.streak && bestStreak > 0 && (
+                  <span
+                    title={`Récord personal: ${bestStreak} días`}
+                    className="text-[9px] font-black uppercase tracking-widest text-[#3a5a40]/35 dark:text-[#a3b18a]/35 flex items-center gap-0.5"
+                  >
+                    <Trophy className="w-2.5 h-2.5" aria-hidden="true" />
+                    {bestStreak}
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => setIsConfirmOpen(true)}
                 aria-label={`Eliminar hábito ${habit.name}`}

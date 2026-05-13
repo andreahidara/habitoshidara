@@ -81,6 +81,7 @@ interface AppState {
   // Notes (Brain Dump)
   addNote: (content: string) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  updateNote: (id: string, content: string) => Promise<void>;
 
   // Mood Tracker
   setDailyMood: (mood: string, date: string) => Promise<void>;
@@ -90,6 +91,7 @@ interface AppState {
   toggleTask: (id: string, currentStatus: boolean) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   clearCompletedTasks: () => Promise<void>;
+  updateTask: (id: string, title: string, priority: TaskPriority) => Promise<void>;
 }
 
 const tempId = () => `optimistic-${Date.now()}-${Math.random()}`;
@@ -283,6 +285,20 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
+  updateNote: async (id, content) => {
+    if (!get().user) return;
+    const original = get().notes.find(n => n.id === id);
+    if (!original) return;
+    set((s) => ({ notes: s.notes.map(n => n.id === id ? { ...n, content } : n) }));
+    const { data, error } = await supabase.from('notes').update({ content }).eq('id', id).select();
+    if (!error && data) {
+      set((s) => ({ notes: s.notes.map(n => n.id === id ? data[0] : n) }));
+    } else {
+      set((s) => ({ notes: s.notes.map(n => n.id === id ? original : n) }));
+      get().showToast(`Error al actualizar la nota: ${error?.message}`, 'error');
+    }
+  },
+
   setDailyMood: async (mood, date) => {
     const user = get().user;
     if(!user) return;
@@ -347,6 +363,20 @@ export const useStore = create<AppState>((set, get) => ({
     if (error) {
       if (taskToDelete) set((s) => ({ tasks: [taskToDelete, ...s.tasks] }));
       get().showToast(`Error al eliminar la tarea: ${error.message}`, 'error');
+    }
+  },
+
+  updateTask: async (id, title, priority) => {
+    if (!get().user) return;
+    const original = get().tasks.find(t => t.id === id);
+    if (!original) return;
+    set((s) => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, title, priority } : t) }));
+    const { data, error } = await supabase.from('tasks').update({ title, priority }).eq('id', id).select();
+    if (!error && data) {
+      set((s) => ({ tasks: s.tasks.map(t => t.id === id ? data[0] : t) }));
+    } else {
+      set((s) => ({ tasks: s.tasks.map(t => t.id === id ? original : t) }));
+      get().showToast(`Error al actualizar la tarea: ${error?.message}`, 'error');
     }
   },
 

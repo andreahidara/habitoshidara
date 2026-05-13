@@ -5,7 +5,7 @@ import { useStore } from "@/store/useStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Trash2, Send, Brain, Leaf, Search, Sparkles } from "lucide-react"
+import { Trash2, Send, Brain, Leaf, Search, Sparkles, Check, X, Pencil } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -13,9 +13,27 @@ import { es } from "date-fns/locale"
 const NOTE_MAX = 2000
 
 export function BrainDump() {
-  const { notes, addNote, deleteNote } = useStore()
+  const { notes, addNote, deleteNote, updateNote } = useStore()
   const [newNote, setNewNote] = useState("")
   const [search, setSearch] = useState("")
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState("")
+
+  const startEditNote = (note: { id: string; content: string }) => {
+    setEditingNoteId(note.id)
+    setEditContent(note.content)
+  }
+
+  const saveNote = async () => {
+    if (!editingNoteId) return
+    const trimmed = editContent.trim()
+    if (trimmed && trimmed.length <= NOTE_MAX) {
+      await updateNote(editingNoteId, trimmed)
+    }
+    setEditingNoteId(null)
+  }
+
+  const cancelNote = () => setEditingNoteId(null)
 
   const handleAdd = async () => {
     const trimmed = newNote.trim()
@@ -112,29 +130,91 @@ export function BrainDump() {
                      exit={{ opacity: 0, scale: 0.94 }}
                      layout
                   >
-                     <Card className="group overflow-hidden border border-[#3a5a40]/10 dark:border-[#3a5a40]/20 bg-white dark:bg-[#1b221b] hover:border-[#3a5a40]/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 rounded-[1.2rem] sm:rounded-[1.5rem] border-l-4 border-l-[#3a5a40]/30 p-0">
-                        <CardContent className="p-5 sm:p-6 flex flex-col gap-3 sm:gap-4">
-                           <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                 <span className="text-[10px] sm:text-[11px] font-black px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
-                                    {format(new Date(note.created_at), 'dd MMM', { locale: es })}
-                                 </span>
-                                 <span className="text-[10px] sm:text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
-                                    {format(new Date(note.created_at), 'HH:mm')}
-                                 </span>
-                              </div>
+                     <Card className={`group overflow-hidden border border-[#3a5a40]/10 dark:border-[#3a5a40]/20 bg-white dark:bg-[#1b221b] transition-all duration-300 rounded-[1.2rem] sm:rounded-[1.5rem] border-l-4 border-l-[#3a5a40]/30 p-0 ${
+                        editingNoteId === note.id ? 'border-[#3a5a40]/40 shadow-lg' : 'hover:border-[#3a5a40]/30 hover:shadow-lg hover:-translate-y-0.5'
+                      }`}>
+                        {editingNoteId === note.id ? (
+                          <CardContent className="p-5 sm:p-6 flex flex-col gap-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[10px] sm:text-[11px] font-black px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
+                                {format(new Date(note.created_at), 'dd MMM', { locale: es })}
+                              </span>
+                              <span className="text-[10px] sm:text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
+                                {format(new Date(note.created_at), 'HH:mm')}
+                              </span>
+                            </div>
+                            <Textarea
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value.slice(0, NOTE_MAX))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') cancelNote()
+                                if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); saveNote() }
+                              }}
+                              autoFocus
+                              className="min-h-[80px] bg-[#f8f5f0] dark:bg-[#0a0f0a]/50 border-2 border-[#3a5a40]/15 rounded-[1rem] p-4 text-sm font-semibold text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-2 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] resize-none transition-all"
+                            />
+                            {editContent.length > 0 && (
+                              <p className={`text-right text-[9px] font-black ${editContent.length >= NOTE_MAX ? 'text-red-500' : 'text-[#a47148]/40'}`}>
+                                {editContent.length}/{NOTE_MAX}
+                              </p>
+                            )}
+                            <div className="flex gap-2">
                               <button
-                                 onClick={() => deleteNote(note.id)}
-                                 aria-label={`Eliminar nota: ${note.content.slice(0, 40).replace(/\n/g, ' ')}`}
-                                 className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
+                                onClick={saveNote}
+                                disabled={!editContent.trim()}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#3a5a40] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#344e41] transition-all disabled:opacity-40"
                               >
-                                 <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <Check className="w-3.5 h-3.5" /> Guardar
                               </button>
-                           </div>
-                           <p className="text-[#344e41] dark:text-[#dad7cd] font-semibold leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
-                              {note.content}
-                           </p>
-                        </CardContent>
+                              <button
+                                onClick={cancelNote}
+                                aria-label="Cancelar edición"
+                                className="px-4 py-2 rounded-xl bg-[#dad7cd]/30 dark:bg-[#344e41]/20 text-[#344e41]/60 dark:text-[#dad7cd]/50 text-[10px] font-black uppercase tracking-widest hover:bg-[#dad7cd]/50 dark:hover:bg-[#344e41]/40 transition-all"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </CardContent>
+                        ) : (
+                          <CardContent className="p-5 sm:p-6 flex flex-col gap-3 sm:gap-4">
+                             <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                   <span className="text-[10px] sm:text-[11px] font-black px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
+                                      {format(new Date(note.created_at), 'dd MMM', { locale: es })}
+                                   </span>
+                                   <span className="text-[10px] sm:text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
+                                      {format(new Date(note.created_at), 'HH:mm')}
+                                   </span>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <button
+                                     onClick={() => startEditNote(note)}
+                                     aria-label={`Editar nota: ${note.content.slice(0, 40).replace(/\n/g, ' ')}`}
+                                     className="p-1.5 sm:p-2 text-[#3a5a40]/30 hover:text-[#3a5a40] hover:bg-[#3a5a40]/10 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                  >
+                                     <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                  </button>
+                                  <button
+                                     onClick={() => deleteNote(note.id)}
+                                     aria-label={`Eliminar nota: ${note.content.slice(0, 40).replace(/\n/g, ' ')}`}
+                                     className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                  >
+                                     <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                  </button>
+                                </div>
+                             </div>
+                             <p
+                               onClick={() => startEditNote(note)}
+                               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && startEditNote(note)}
+                               tabIndex={0}
+                               role="button"
+                               aria-label={`Editar nota: ${note.content.slice(0, 40).replace(/\n/g, ' ')}`}
+                               className="text-[#344e41] dark:text-[#dad7cd] font-semibold leading-relaxed whitespace-pre-wrap text-sm sm:text-base cursor-text focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3a5a40]/30 rounded"
+                             >
+                                {note.content}
+                             </p>
+                          </CardContent>
+                        )}
                      </Card>
                   </motion.div>
                   ))}

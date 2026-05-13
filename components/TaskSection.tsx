@@ -6,7 +6,7 @@ import type { TaskPriority } from "@/store/useStore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList, ChevronUp, Minus, ChevronDown, Loader2, Eraser } from "lucide-react"
+import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList, ChevronUp, Minus, ChevronDown, Loader2, Eraser, Pencil, Check, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
 
@@ -23,10 +23,13 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; Icon: ComponentType<{ c
 const PRIORITY_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
 
 export function TaskSection() {
-  const { tasks, addTask, toggleTask, deleteTask, clearCompletedTasks } = useStore()
+  const { tasks, addTask, toggleTask, deleteTask, clearCompletedTasks, updateTask } = useStore()
   const [newTask, setNewTask] = useState("")
   const [newPriority, setNewPriority] = useState<Priority>('medium')
   const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set())
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editPriority, setEditPriority] = useState<Priority>('medium')
 
   const { sortedTasks, completedCount, hasCompleted, allCompleted } = useMemo(() => {
     const sorted = [...tasks].sort((a, b) => {
@@ -48,6 +51,28 @@ export function TaskSection() {
     await addTask(trimmed, newPriority)
     setNewTask("")
     setNewPriority('medium')
+  }
+
+  const startEdit = (task: { id: string; title: string; priority: TaskPriority }) => {
+    setEditingTaskId(task.id)
+    setEditTitle(task.title)
+    setEditPriority(task.priority ?? 'medium')
+  }
+
+  const saveEdit = async () => {
+    if (!editingTaskId) return
+    const trimmed = editTitle.trim()
+    if (trimmed && trimmed.length <= TASK_TITLE_MAX) {
+      await updateTask(editingTaskId, trimmed, editPriority)
+    }
+    setEditingTaskId(null)
+  }
+
+  const cancelEdit = () => setEditingTaskId(null)
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') { e.preventDefault(); saveEdit() }
+    if (e.key === 'Escape') cancelEdit()
   }
 
   const handleToggle = async (id: string, isCompleted: boolean) => {
@@ -193,49 +218,113 @@ export function TaskSection() {
                             ? 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl border-l-[#3a5a40]'
                             : 'bg-white dark:bg-[#1b221b] border-[#dad7cd] dark:border-[#3a5a40]/10 hover:border-[#3a5a40]/30 shadow-sm hover:shadow-xl border-l-[#a47148]'
                     }`}>
-                      <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
-                        <button
-                          onClick={() => handleToggle(task.id, task.is_completed)}
-                          disabled={pendingTaskIds.has(task.id)}
-                          aria-label={task.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}
-                          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
-                            pendingTaskIds.has(task.id)
-                              ? 'bg-[#3a5a40]/20 cursor-wait'
+                      {editingTaskId === task.id ? (
+                        <CardContent className="p-4 sm:p-5 flex flex-col gap-2.5">
+                          <div className="flex items-center gap-1.5">
+                            {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => {
+                              const { label, Icon, ring } = PRIORITY_CONFIG[p]
+                              const active = editPriority === p
+                              return (
+                                <button key={p} type="button" onClick={() => setEditPriority(p)}
+                                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    active ? ring : 'border-transparent bg-[#f8f5f0] dark:bg-[#344e41]/30 text-[#344e41]/40 dark:text-[#dad7cd]/30'
+                                  }`}>
+                                  <Icon className="w-3 h-3" />{label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value.slice(0, TASK_TITLE_MAX))}
+                                onKeyDown={handleEditKeyDown}
+                                autoFocus
+                                className="w-full bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/20 rounded-[1rem] h-10 px-4 text-sm font-bold text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-2 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all pr-16"
+                              />
+                              {editTitle.length > 0 && (
+                                <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black ${editTitle.length >= TASK_TITLE_MAX ? 'text-red-500' : 'text-[#a47148]/50'}`}>
+                                  {editTitle.length}/{TASK_TITLE_MAX}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={saveEdit}
+                              disabled={!editTitle.trim()}
+                              aria-label="Guardar cambios"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#3a5a40] text-white hover:bg-[#344e41] transition-all disabled:opacity-40 flex-shrink-0"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              aria-label="Cancelar edición"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#dad7cd]/40 dark:bg-[#344e41]/30 text-[#344e41]/60 dark:text-[#dad7cd]/60 hover:bg-[#dad7cd]/70 dark:hover:bg-[#344e41]/50 transition-all flex-shrink-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </CardContent>
+                      ) : (
+                        <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
+                          <button
+                            onClick={() => handleToggle(task.id, task.is_completed)}
+                            disabled={pendingTaskIds.has(task.id)}
+                            aria-label={task.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}
+                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
+                              pendingTaskIds.has(task.id)
+                                ? 'bg-[#3a5a40]/20 cursor-wait'
+                                : task.is_completed
+                                  ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30'
+                                  : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
+                            }`}
+                          >
+                            {pendingTaskIds.has(task.id)
+                              ? <Loader2 className="w-4 h-4 text-[#3a5a40] animate-spin" />
                               : task.is_completed
-                                ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30'
-                                : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
-                          }`}
-                        >
-                          {pendingTaskIds.has(task.id)
-                            ? <Loader2 className="w-4 h-4 text-[#3a5a40] animate-spin" />
-                            : task.is_completed
-                              ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />
-                              : <Square className="w-5 h-5 sm:w-6 sm:h-6" />
-                          }
-                        </button>
+                                ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+                                : <Square className="w-5 h-5 sm:w-6 sm:h-6" />
+                            }
+                          </button>
 
-                        <span className={`flex-1 font-black text-base sm:text-xl tracking-tight transition-all truncate ${
-                          task.is_completed ? 'text-[#3a5a40]/40 line-through' : 'text-[#344e41] dark:text-[#dad7cd]'
-                        }`}>
-                          {task.title}
-                        </span>
-
-                        {!task.is_completed && (
-                          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest flex-shrink-0 ${pCfg.badge}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pCfg.dot}`} aria-hidden="true" />
-                            <span className="hidden sm:inline">{pCfg.label}</span>
-                            <span className="sr-only">Prioridad {pCfg.label}</span>
+                          <span
+                            onDoubleClick={() => !task.is_completed && !pendingTaskIds.has(task.id) && startEdit(task)}
+                            className={`flex-1 font-black text-base sm:text-xl tracking-tight transition-all truncate ${
+                              task.is_completed
+                                ? 'text-[#3a5a40]/40 line-through'
+                                : 'text-[#344e41] dark:text-[#dad7cd] cursor-text'
+                            }`}>
+                            {task.title}
                           </span>
-                        )}
 
-                        <button
-                          onClick={() => deleteTask(task.id)}
-                          aria-label={`Eliminar tarea: ${task.title}`}
-                          className="p-2 sm:p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
-                        >
-                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </CardContent>
+                          {!task.is_completed && (
+                            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest flex-shrink-0 ${pCfg.badge}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pCfg.dot}`} aria-hidden="true" />
+                              <span className="hidden sm:inline">{pCfg.label}</span>
+                              <span className="sr-only">Prioridad {pCfg.label}</span>
+                            </span>
+                          )}
+
+                          {!task.is_completed && (
+                            <button
+                              onClick={() => startEdit(task)}
+                              aria-label={`Editar tarea: ${task.title}`}
+                              className="p-2 sm:p-2.5 text-[#3a5a40]/30 hover:text-[#3a5a40] hover:bg-[#3a5a40]/10 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
+                            >
+                              <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => deleteTask(task.id)}
+                            aria-label={`Eliminar tarea: ${task.title}`}
+                            className="p-2 sm:p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
+                          >
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                        </CardContent>
+                      )}
                     </Card>
                   </motion.div>
                 )
