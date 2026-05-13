@@ -1,6 +1,5 @@
 "use client"
 
-import React from 'react'
 import { useStore } from "@/store/useStore"
 import { format } from "date-fns"
 import { motion } from "framer-motion"

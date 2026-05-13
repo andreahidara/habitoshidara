@@ -1,17 +1,20 @@
 "use client"
 
-import React, { useState } from 'react'
+import { useState, useMemo, type ComponentType } from 'react'
 import { useStore } from "@/store/useStore"
+import type { TaskPriority } from "@/store/useStore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList, ChevronUp, Minus, ChevronDown } from "lucide-react"
+import { Trash2, Plus, ListTodo, CheckSquare, Square, Sparkles, LayoutList, ChevronUp, Minus, ChevronDown, Loader2, Eraser } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
 
-type Priority = 'high' | 'medium' | 'low'
+type Priority = TaskPriority
 
-const PRIORITY_CONFIG: Record<Priority, { label: string; Icon: React.ComponentType<{ className?: string }>; ring: string; badge: string; dot: string }> = {
+const TASK_TITLE_MAX = 100
+
+const PRIORITY_CONFIG: Record<Priority, { label: string; Icon: ComponentType<{ className?: string }>; ring: string; badge: string; dot: string }> = {
   high:   { label: 'Alta',  Icon: ChevronUp,   ring: 'border-red-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',          badge: 'bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border-red-200 dark:border-red-800',     dot: 'bg-red-500' },
   medium: { label: 'Media', Icon: Minus,        ring: 'border-[#a47148]/40 bg-[#a47148]/10 dark:bg-[#a47148]/20 text-[#a47148]',             badge: 'bg-[#a47148]/10 dark:bg-[#a47148]/20 text-[#a47148] border-[#a47148]/30',                              dot: 'bg-[#a47148]' },
   low:    { label: 'Baja',  Icon: ChevronDown, ring: 'border-[#3a5a40]/30 bg-[#3a5a40]/10 dark:bg-[#3a5a40]/20 text-[#3a5a40] dark:text-[#a3b18a]', badge: 'bg-[#3a5a40]/10 dark:bg-[#3a5a40]/20 text-[#3a5a40] dark:text-[#a3b18a] border-[#3a5a40]/20', dot: 'bg-[#3a5a40]' },
@@ -20,25 +23,51 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; Icon: React.ComponentTy
 const PRIORITY_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
 
 export function TaskSection() {
-  const { tasks, addTask, toggleTask, deleteTask } = useStore()
+  const { tasks, addTask, toggleTask, deleteTask, clearCompletedTasks } = useStore()
   const [newTask, setNewTask] = useState("")
   const [newPriority, setNewPriority] = useState<Priority>('medium')
+  const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(new Set())
+
+  const { sortedTasks, completedCount, hasCompleted, allCompleted } = useMemo(() => {
+    const sorted = [...tasks].sort((a, b) => {
+      if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1
+      return PRIORITY_ORDER[a.priority ?? 'medium'] - PRIORITY_ORDER[b.priority ?? 'medium']
+    })
+    const completedCount = tasks.filter(t => t.is_completed).length
+    return {
+      sortedTasks: sorted,
+      completedCount,
+      hasCompleted: completedCount > 0,
+      allCompleted: tasks.length > 0 && completedCount === tasks.length,
+    }
+  }, [tasks])
 
   const handleAdd = async () => {
-    if (newTask.trim() === "") return
-    await addTask(newTask, newPriority)
+    const trimmed = newTask.trim()
+    if (!trimmed || trimmed.length > TASK_TITLE_MAX) return
+    await addTask(trimmed, newPriority)
     setNewTask("")
     setNewPriority('medium')
   }
 
   const handleToggle = async (id: string, isCompleted: boolean) => {
-    await toggleTask(id, isCompleted)
-    if (!isCompleted) {
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.8 },
-        colors: ['#3a5a40', '#a47148', '#ffffff']
+    if (pendingTaskIds.has(id)) return
+    setPendingTaskIds(prev => new Set(prev).add(id))
+    try {
+      await toggleTask(id, isCompleted)
+      if (!isCompleted) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.8 },
+          colors: ['#3a5a40', '#a47148', '#ffffff']
+        })
+      }
+    } finally {
+      setPendingTaskIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
       })
     }
   }
@@ -54,7 +83,7 @@ export function TaskSection() {
             <ListTodo className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Tareas Diarias
           </h2>
           <div className="relative z-10 flex items-center gap-3 px-4 py-2 bg-white/10 border border-white/10 rounded-[2rem] text-[10px] sm:text-[12px] font-black uppercase text-white tracking-widest">
-            {tasks.filter(t => t.is_completed).length} / {tasks.length} completadas
+            {completedCount} / {tasks.length} completadas
           </div>
         </div>
         
@@ -68,6 +97,7 @@ export function TaskSection() {
                 <button
                   key={p}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => setNewPriority(p)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-[1rem] border-2 text-xs font-black uppercase tracking-widest transition-all ${
                     active ? ring : 'border-transparent bg-[#f8f5f0] dark:bg-[#1b221b] text-[#344e41]/40 dark:text-[#dad7cd]/30 hover:opacity-70'
@@ -83,22 +113,39 @@ export function TaskSection() {
                 <Input
                    placeholder="¿Qué quieres conseguir hoy?"
                    value={newTask}
-                   onChange={(e) => setNewTask(e.target.value)}
-                   className="w-full bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.5rem] h-14 sm:h-16 px-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all placeholder:opacity-30 shadow-inner"
+                   onChange={(e) => setNewTask(e.target.value.slice(0, TASK_TITLE_MAX))}
+                   className="w-full bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.5rem] h-14 sm:h-16 px-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all placeholder:opacity-30 shadow-inner pr-20"
                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                 />
+                {newTask.length > 0 && (
+                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black ${newTask.length >= TASK_TITLE_MAX ? 'text-red-500' : 'text-[#a47148]/50'}`}>
+                    {newTask.length}/{TASK_TITLE_MAX}
+                  </span>
+                )}
              </div>
-             <Button onClick={handleAdd} disabled={!newTask.trim()} className="btn-primary aspect-square h-14 sm:h-16 w-14 sm:w-16 rounded-[1.5rem] shadow-lg shadow-[#3a5a40]/20 p-0 flex items-center justify-center">
+             <Button onClick={handleAdd} disabled={!newTask.trim() || newTask.length > TASK_TITLE_MAX} className="btn-primary aspect-square h-14 sm:h-16 w-14 sm:w-16 rounded-[1.5rem] shadow-lg shadow-[#3a5a40]/20 p-0 flex items-center justify-center">
                 <Plus className="w-6 h-6 sm:w-8 sm:h-8" />
              </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Clear completed */}
+      {hasCompleted && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => clearCompletedTasks()}
+            className="flex items-center gap-2 px-4 py-2 rounded-[1rem] text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 transition-all"
+          >
+            <Eraser className="w-3.5 h-3.5" /> Limpiar completadas
+          </button>
+        </div>
+      )}
+
       {/* Tasks List */}
       <div className="flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
-          {tasks.length === 0 ? (
+          {sortedTasks.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }} 
               animate={{ opacity: 1, scale: 1 }} 
@@ -111,12 +158,7 @@ export function TaskSection() {
               <p className="text-[#344e41]/60 dark:text-[#a3b18a] font-bold max-w-xs mx-auto uppercase text-xs tracking-widest">Añade tu primera tarea arriba para empezar a tachar objetivos.</p>
             </motion.div>
           ) : (
-            [...tasks]
-              .sort((a, b) => {
-                if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1
-                return PRIORITY_ORDER[a.priority ?? 'medium'] - PRIORITY_ORDER[b.priority ?? 'medium']
-              })
-              .map((task) => {
+            sortedTasks.map((task) => {
                 const pCfg = PRIORITY_CONFIG[task.priority ?? 'medium']
                 return (
                   <motion.div
@@ -138,14 +180,22 @@ export function TaskSection() {
                       <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
                         <button
                           onClick={() => handleToggle(task.id, task.is_completed)}
+                          disabled={pendingTaskIds.has(task.id)}
                           aria-label={task.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}
                           className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
-                            task.is_completed
-                              ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30'
-                              : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
+                            pendingTaskIds.has(task.id)
+                              ? 'bg-[#3a5a40]/20 cursor-wait'
+                              : task.is_completed
+                                ? 'bg-[#3a5a40] text-white shadow-lg shadow-[#3a5a40]/30'
+                                : 'bg-[#dad7cd]/30 dark:bg-black/20 text-[#3a5a40] hover:bg-[#3a5a40]/10'
                           }`}
                         >
-                          {task.is_completed ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" /> : <Square className="w-5 h-5 sm:w-6 sm:h-6" />}
+                          {pendingTaskIds.has(task.id)
+                            ? <Loader2 className="w-4 h-4 text-[#3a5a40] animate-spin" />
+                            : task.is_completed
+                              ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+                              : <Square className="w-5 h-5 sm:w-6 sm:h-6" />
+                          }
                         </button>
 
                         <span className={`flex-1 font-black text-base sm:text-xl tracking-tight transition-all truncate ${
@@ -177,7 +227,7 @@ export function TaskSection() {
         </AnimatePresence>
       </div>
 
-      {tasks.length > 0 && tasks.every(t => t.is_completed) && (
+      {allCompleted && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 

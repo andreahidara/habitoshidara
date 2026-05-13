@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useStore } from "@/store/useStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Trash2, Send, Brain, Leaf, Search, Sparkles } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
+
+const NOTE_MAX = 2000
 
 export function BrainDump() {
   const { notes, addNote, deleteNote } = useStore()
@@ -15,12 +18,16 @@ export function BrainDump() {
   const [search, setSearch] = useState("")
 
   const handleAdd = async () => {
-    if (newNote.trim() === "") return
-    await addNote(newNote)
+    const trimmed = newNote.trim()
+    if (!trimmed || trimmed.length > NOTE_MAX) return
+    await addNote(trimmed)
     setNewNote("")
   }
 
-  const filteredNotes = notes.filter(n => n.content.toLowerCase().includes(search.toLowerCase()))
+  const filteredNotes = useMemo(() => {
+    const q = search.toLowerCase()
+    return notes.filter(n => n.content.toLowerCase().includes(q))
+  }, [notes, search])
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto">
@@ -38,22 +45,26 @@ export function BrainDump() {
                </CardHeader>
                <CardContent className="p-6 sm:p-8 space-y-4 sm:space-y-6 bg-white dark:bg-[#0a0f0a]/50">
                   <div className="relative">
-                     <Textarea 
+                     <Textarea
                         placeholder="Escribe lo que ocupa tu mente..."
                         value={newNote}
-                        onChange={(e) => setNewNote(e.target.value)}
-                        className="min-h-[150px] sm:min-h-[200px] bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.2rem] sm:rounded-[1.5rem] p-5 sm:p-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] resize-none transition-all placeholder:opacity-40 shadow-inner"
+                        onChange={(e) => setNewNote(e.target.value.slice(0, NOTE_MAX))}
+                        className="min-h-[150px] sm:min-h-[200px] bg-[#f8f5f0] dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 rounded-[1.2rem] sm:rounded-[1.5rem] p-5 sm:p-6 text-base sm:text-lg font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] resize-none transition-all placeholder:opacity-40 shadow-inner pb-10"
                         onKeyDown={(e) => {
                            if(e.key === "Enter" && e.ctrlKey) handleAdd()
                         }}
                      />
                      {newNote.length > 0 && (
-                        <div className="absolute right-4 bottom-4 text-[#a47148] font-black text-[9px] px-2 py-1 bg-[#a47148]/10 rounded-lg">
-                           {newNote.length} car.
+                        <div className={`absolute right-4 bottom-4 font-black text-[9px] px-2 py-1 rounded-lg ${
+                          newNote.length >= NOTE_MAX
+                            ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                            : 'text-[#a47148] bg-[#a47148]/10'
+                        }`}>
+                           {newNote.length} / {NOTE_MAX}
                         </div>
                      )}
                   </div>
-                  <Button onClick={handleAdd} disabled={!newNote.trim()} className="btn-primary w-full h-12 sm:h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-40 group">
+                  <Button onClick={handleAdd} disabled={!newNote.trim() || newNote.length > NOTE_MAX} className="btn-primary w-full h-12 sm:h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-40 group">
                      <Send className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> Registrar Semilla
                   </Button>
                </CardContent>
@@ -65,12 +76,13 @@ export function BrainDump() {
             {/* Search */}
             <div className="relative">
                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3a5a40] opacity-40" />
-               <input 
-                  type="text" 
-                  placeholder="Buscar ideas..." 
+               <input
+                  type="text"
+                  aria-label="Buscar ideas"
+                  placeholder="Buscar ideas..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-14 pl-14 pr-6 text-base font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus:ring-4 focus:ring-[#3a5a40]/10 focus:border-[#3a5a40] outline-none transition-all placeholder:opacity-30 shadow-sm"
+                  className="w-full bg-white dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-14 pl-14 pr-6 text-base font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] outline-none transition-all placeholder:opacity-30 shadow-sm"
                />
             </div>
 
@@ -100,7 +112,7 @@ export function BrainDump() {
                            <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-2 flex-wrap">
                                  <span className="text-[10px] sm:text-[11px] font-black px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#3a5a40]/5 dark:bg-[#344e41]/50 rounded-lg text-[#344e41] dark:text-[#a3b18a] uppercase tracking-widest">
-                                    {format(new Date(note.created_at), 'dd MMM')}
+                                    {format(new Date(note.created_at), 'dd MMM', { locale: es })}
                                  </span>
                                  <span className="text-[10px] sm:text-[11px] font-black text-[#a47148] tracking-widest opacity-50">
                                     {format(new Date(note.created_at), 'HH:mm')}

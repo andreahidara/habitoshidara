@@ -1,17 +1,20 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Target, Flame, Plus, Sparkles, Leaf } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from 'canvas-confetti'
-import { format, subDays } from 'date-fns'
+import { format } from 'date-fns'
 
 import { useStore } from "@/store/useStore"
+import { calculateStreak } from '@/lib/utils'
 import { MoodSelector } from '@/components/MoodSelector'
 import { HabitCard } from '@/components/HabitCard'
+
+const HABIT_NAME_MAX = 60
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -20,29 +23,40 @@ const containerVariants = {
 
 export function HabitsView() {
   const { habits, habitLogs, addHabit, deleteHabit, toggleHabitLog } = useStore()
-  
+
   const [newHabit, setNewHabit] = useState("")
   const [newHabitIcon, setNewHabitIcon] = useState("🌿")
+  const [pendingHabitIds, setPendingHabitIds] = useState<Set<string>>(new Set())
 
   const todayStr = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   const handleAddHabit = async () => {
-    if (newHabit.trim() === "") return
-    // description was removed from UI in previous versions, pass empty string
-    await addHabit({ name: newHabit, description: "", icon: newHabitIcon })
+    const trimmed = newHabit.trim()
+    if (!trimmed || trimmed.length > HABIT_NAME_MAX) return
+    await addHabit({ name: trimmed, description: "", icon: newHabitIcon })
     setNewHabit("")
     setNewHabitIcon("🌿")
   }
 
   const triggerConfettiAndToggle = async (habitId: string, currentlyCompleted: boolean) => {
-    await toggleHabitLog(habitId, todayStr)
-    if (!currentlyCompleted) {
-      confetti({
-        particleCount: 200,
-        spread: 90,
-        origin: { y: 0.75 },
-        colors: ['#3a5a40', '#588157', '#a47148', '#ffffff'],
-        gravity: 0.8
+    if (pendingHabitIds.has(habitId)) return
+    setPendingHabitIds(prev => new Set(prev).add(habitId))
+    try {
+      await toggleHabitLog(habitId, todayStr)
+      if (!currentlyCompleted) {
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.75 },
+          colors: ['#3a5a40', '#588157', '#a47148', '#ffffff'],
+          gravity: 0.8
+        })
+      }
+    } finally {
+      setPendingHabitIds(prev => {
+        const next = new Set(prev)
+        next.delete(habitId)
+        return next
       })
     }
   }
@@ -51,15 +65,8 @@ export function HabitsView() {
     return habits.map(habit => {
       const logs = habitLogs.filter(log => log.habit_id === habit.id)
       const isCompletedToday = logs.some(log => log.completed_date === todayStr)
-
       const completedDates = new Set(logs.map(l => l.completed_date))
-      let streak = 0
-      let cursor = new Date(todayStr)
-      while (completedDates.has(format(cursor, 'yyyy-MM-dd'))) {
-        streak++
-        cursor = subDays(cursor, 1)
-      }
-
+      const streak = calculateStreak(completedDates)
       return { ...habit, logs, isCompletedToday, streak }
     })
   }, [habits, habitLogs, todayStr])
@@ -89,23 +96,33 @@ export function HabitsView() {
                 </div>
                 <div className="p-3 bg-white/80 dark:bg-black/20 rounded-[1.5rem] border border-[#3a5a40]/10 flex items-center justify-between overflow-x-auto gap-2">
                   {["🌿", "💧", "🏃", "📚", "🧘", "💪", "🍎"].map(emoji => (
-                      <button 
-                        key={emoji} 
-                        onClick={() => setNewHabitIcon(emoji)} 
+                      <button
+                        key={emoji}
+                        type="button"
+                        aria-label={`Icono ${emoji}`}
+                        aria-pressed={newHabitIcon === emoji}
+                        onClick={() => setNewHabitIcon(emoji)}
                         className={`text-2xl p-2.5 rounded-xl transition-all flex-shrink-0 ${newHabitIcon === emoji ? 'bg-[#3a5a40] shadow-md scale-110' : 'hover:bg-[#dad7cd]/60 dark:hover:bg-[#3a5a40]/30 opacity-60 hover:opacity-100'}`}
                       >
                         {emoji}
                       </button>
                   ))}
                 </div>
-                <Input 
-                  placeholder="Ej. Meditación matutina" 
-                  value={newHabit} 
-                  onChange={(e) => setNewHabit(e.target.value)} 
-                  className="w-full bg-white dark:bg-[#0a0f0a]/50 border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-14 px-6 text-lg font-bold text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all placeholder:opacity-30 shadow-inner" 
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddHabit()}
-                />
-                <Button onClick={handleAddHabit} disabled={!newHabit.trim()} className="btn-primary w-full h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-50 group">
+                <div className="relative">
+                  <Input
+                    placeholder="Ej. Meditación matutina"
+                    value={newHabit}
+                    onChange={(e) => setNewHabit(e.target.value.slice(0, HABIT_NAME_MAX))}
+                    className="w-full bg-white dark:bg-[#0a0f0a]/50 border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-14 px-6 text-lg font-bold text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] transition-all placeholder:opacity-30 shadow-inner"
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddHabit()}
+                  />
+                  {newHabit.length > 0 && (
+                    <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black ${newHabit.length >= HABIT_NAME_MAX ? 'text-red-500' : 'text-[#a47148]/60'}`}>
+                      {newHabit.length}/{HABIT_NAME_MAX}
+                    </span>
+                  )}
+                </div>
+                <Button onClick={handleAddHabit} disabled={!newHabit.trim() || newHabit.length > HABIT_NAME_MAX} className="btn-primary w-full h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-50 group">
                   <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Sembrar Hábito
                 </Button>
             </div>
@@ -124,9 +141,16 @@ export function HabitsView() {
           <div className="flex items-center gap-4">
             <div className="text-right">
                 <p className="text-[11px] font-black uppercase tracking-widest text-[#3a5a40] dark:text-[#a3b18a] opacity-60">{completedTodayCount} de {totalHabits}</p>
-                <div className="w-32 h-2 bg-[#dad7cd] dark:bg-[#1b221b] rounded-full overflow-hidden mt-1">
-                  <div 
-                      className="h-full bg-[#3a5a40] dark:bg-[#588157] rounded-full transition-all duration-700" 
+                <div
+                  role="progressbar"
+                  aria-valuenow={completedTodayCount}
+                  aria-valuemin={0}
+                  aria-valuemax={totalHabits}
+                  aria-label="Progreso de hábitos de hoy"
+                  className="w-32 h-2 bg-[#dad7cd] dark:bg-[#1b221b] rounded-full overflow-hidden mt-1"
+                >
+                  <div
+                      className="h-full bg-[#3a5a40] dark:bg-[#588157] rounded-full transition-all duration-700"
                       style={{ width: totalHabits > 0 ? `${Math.round((completedTodayCount / totalHabits) * 100)}%` : '0%' }}
                   />
                 </div>
@@ -156,11 +180,12 @@ export function HabitsView() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
               {enrichedHabits.map((habit) => (
-                <HabitCard 
-                  key={habit.id} 
-                  habit={habit} 
-                  onToggle={triggerConfettiAndToggle} 
-                  onDelete={deleteHabit} 
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onToggle={triggerConfettiAndToggle}
+                  onDelete={deleteHabit}
+                  isPending={pendingHabitIds.has(habit.id)}
                 />
               ))}
           </motion.div>

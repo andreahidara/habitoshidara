@@ -45,3 +45,4 @@ lint.json
 lint_output.txt
 skills-lock.json
 .agents/
+.claude/settings.local.json

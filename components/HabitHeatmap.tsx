@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import { useMemo } from 'react'
 import { format, subDays } from 'date-fns'
 
 interface HabitHeatmapProps {
@@ -8,9 +8,15 @@ interface HabitHeatmapProps {
 }
 
 export function HabitHeatmap({ logs }: HabitHeatmapProps) {
-  const today = new Date()
-  const days = Array.from({ length: 60 }).map((_, i) => subDays(today, 59 - i))
-  const completedSet = new Set(logs.map(log => log.completed_date))
+  const days = useMemo(() => {
+    const today = new Date()
+    return Array.from({ length: 60 }).map((_, i) => subDays(today, 59 - i))
+  }, [])
+
+  const completedSet = useMemo(
+    () => new Set(logs.map(log => log.completed_date)),
+    [logs]
+  )
 
   return (
     <div className="flex flex-col items-center">

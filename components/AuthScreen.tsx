@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { useStore } from "@/store/useStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export function AuthScreen() {
   const [error, setError] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError("")
     setSuccessMsg("")

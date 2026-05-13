@@ -1,2 +1,4 @@
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://mi-habit-tracker.vercel.app/sitemap.xml

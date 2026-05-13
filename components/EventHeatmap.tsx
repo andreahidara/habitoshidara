@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import { useMemo } from 'react'
 import { ActivityCalendar, ThemeInput } from 'react-activity-calendar'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useStore } from "@/store/useStore"
@@ -12,13 +12,12 @@ export function EventHeatmap() {
   const { events } = useStore()
   const { resolvedTheme } = useTheme()
   
-  // PALETA CLAY / TIERRA (V5.2)
   const eventTheme: ThemeInput = {
     light: ['#f2e9e4', '#dad7cd', '#a47148', '#8b5e34', '#5c3d2e'],
     dark: ['#1b221b', '#3d2b1f', '#8b5e34', '#a47148', '#dad7cd']
   }
 
-  const data = React.useMemo(() => {
+  const data = useMemo(() => {
     const today = new Date();
     const startDate = subDays(today, 365);
     

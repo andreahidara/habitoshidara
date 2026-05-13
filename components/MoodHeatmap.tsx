@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import { useMemo } from 'react'
 import { ActivityCalendar, ThemeInput } from 'react-activity-calendar'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useStore } from "@/store/useStore"
@@ -18,7 +18,7 @@ export function MoodHeatmap() {
   const { moodLogs } = useStore()
   const { resolvedTheme } = useTheme()
 
-  const data = React.useMemo(() => {
+  const data = useMemo(() => {
     const today = new Date()
     const startDate = subDays(today, 365)
 

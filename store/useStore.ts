@@ -34,7 +34,7 @@ type MoodLog = {
   date: string;
 };
 
-type TaskPriority = 'high' | 'medium' | 'low';
+export type TaskPriority = 'high' | 'medium' | 'low';
 
 type Task = {
   id: string;
@@ -66,15 +66,15 @@ interface AppState {
   clearToast: () => void;
 
   fetchData: () => Promise<void>;
-  
+
   // Events
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
-  
+
   // Habits
   addHabit: (habit: Omit<Habit, 'id'>) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
-  
+
   // Habit Logs
   toggleHabitLog: (habitId: string, date: string) => Promise<void>;
 
@@ -89,7 +89,10 @@ interface AppState {
   addTask: (title: string, priority?: TaskPriority) => Promise<void>;
   toggleTask: (id: string, currentStatus: boolean) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  clearCompletedTasks: () => Promise<void>;
 }
+
+const tempId = () => `optimistic-${Date.now()}-${Math.random()}`;
 
 export const useStore = create<AppState>((set, get) => ({
   events: [],
@@ -113,12 +116,10 @@ export const useStore = create<AppState>((set, get) => ({
     const { data: { session } } = await supabase.auth.getSession();
     set({ user: session?.user || null, isCheckingSession: false });
 
-    // Si ya hay sesión al cargar la página, cargar datos inmediatamente
     if (session?.user) {
       get().fetchData();
     }
-    
-    // Escuchar cambios de sesión (login/logout)
+
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user || null, isCheckingSession: false });
       if(session?.user) get().fetchData();
@@ -143,7 +144,7 @@ export const useStore = create<AppState>((set, get) => ({
   fetchData: async () => {
     const user = get().user;
     if (!user) return;
-    
+
     set({ isLoading: true });
     const [eventsRes, habitsRes, logsRes, notesRes, moodsRes, tasksRes] = await Promise.all([
       supabase.from('events').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
@@ -154,15 +155,14 @@ export const useStore = create<AppState>((set, get) => ({
       supabase.from('tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
     ]);
 
-    // Log potential errors without blocking the whole UI
-    const results = [eventsRes, habitsRes, logsRes, notesRes, moodsRes, tasksRes];
-    results.forEach((res, i) => {
-      if (res.error) console.error(`Error fetching table index ${i}:`, res.error);
+    const tableNames = ['events', 'habits', 'habit_logs', 'notes', 'mood_logs', 'tasks'];
+    [eventsRes, habitsRes, logsRes, notesRes, moodsRes, tasksRes].forEach((res, i) => {
+      if (res.error) console.error(`[fetchData] Error en tabla "${tableNames[i]}":`, res.error.message);
     });
 
-    set({ 
-      events: eventsRes.data || [], 
-      habits: habitsRes.data || [], 
+    set({
+      events: eventsRes.data || [],
+      habits: habitsRes.data || [],
       habitLogs: logsRes.data || [],
       notes: notesRes.data || [],
       moodLogs: moodsRes.data || [],
@@ -174,43 +174,60 @@ export const useStore = create<AppState>((set, get) => ({
   addEvent: async (event) => {
     const user = get().user;
     if(!user) return;
+    const tid = tempId();
+    const tempEvent: Event = { ...event, id: tid };
+    set((s) => ({ events: [...s.events, tempEvent] }));
     const { data, error } = await supabase.from('events').insert([{ ...event, user_id: user.id }]).select();
     if (!error && data) {
-      set((state) => ({ events: [...state.events, data[0]] }));
-    } else if (error) {
-      get().showToast('Error al guardar el evento', 'error');
+      set((s) => ({ events: s.events.map(e => e.id === tid ? data[0] : e) }));
+    } else {
+      set((s) => ({ events: s.events.filter(e => e.id !== tid) }));
+      get().showToast(`Error al guardar el evento: ${error?.message}`, 'error');
     }
   },
 
   deleteEvent: async (id) => {
+    const eventToDelete = get().events.find(e => e.id === id);
+    set((s) => ({ events: s.events.filter(e => e.id !== id) }));
     const { error } = await supabase.from('events').delete().eq('id', id);
-    if (!error) {
-      set((state) => ({ events: state.events.filter(e => e.id !== id) }));
-    } else {
-      get().showToast('Error al eliminar el evento', 'error');
+    if (error) {
+      if (eventToDelete) set((s) => ({ events: [...s.events, eventToDelete] }));
+      get().showToast(`Error al eliminar el evento: ${error.message}`, 'error');
     }
   },
 
   addHabit: async (habit) => {
     const user = get().user;
     if(!user) return;
+    const tid = tempId();
+    const tempHabit: Habit = { ...habit, id: tid };
+    set((s) => ({ habits: [...s.habits, tempHabit] }));
     const { data, error } = await supabase.from('habits').insert([{ ...habit, user_id: user.id }]).select();
     if (!error && data) {
-      set((state) => ({ habits: [...state.habits, data[0]] }));
-    } else if (error) {
-      get().showToast('Error al crear el hábito', 'error');
+      set((s) => ({ habits: s.habits.map(h => h.id === tid ? data[0] : h) }));
+    } else {
+      set((s) => ({ habits: s.habits.filter(h => h.id !== tid) }));
+      get().showToast(`Error al crear el hábito: ${error?.message}`, 'error');
     }
   },
 
   deleteHabit: async (id) => {
+    const state = get();
+    const habitToDelete = state.habits.find(h => h.id === id);
+    const logsToDelete = state.habitLogs.filter(l => l.habit_id === id);
+    set((s) => ({
+      habits: s.habits.filter(h => h.id !== id),
+      habitLogs: s.habitLogs.filter(l => l.habit_id !== id)
+    }));
     const { error } = await supabase.from('habits').delete().eq('id', id);
-    if (!error) {
-      set((state) => ({
-        habits: state.habits.filter(h => h.id !== id),
-        habitLogs: state.habitLogs.filter(l => l.habit_id !== id)
-      }));
-    } else {
-      get().showToast('Error al eliminar el hábito', 'error');
+    if (error) {
+      if (habitToDelete) {
+        set((s) => ({
+          habits: [...s.habits, habitToDelete],
+          habitLogs: [...s.habitLogs, ...logsToDelete]
+        }));
+      }
+      get().showToast(`Error al eliminar el hábito: ${error.message}`, 'error');
     }
   },
 
@@ -221,18 +238,22 @@ export const useStore = create<AppState>((set, get) => ({
     const existingLog = state.habitLogs.find(l => l.habit_id === habitId && l.completed_date === date);
 
     if (existingLog) {
+      set((s) => ({ habitLogs: s.habitLogs.filter(l => l.id !== existingLog.id) }));
       const { error } = await supabase.from('habit_logs').delete().eq('id', existingLog.id);
-      if (!error) {
-         set((state) => ({ habitLogs: state.habitLogs.filter(l => l.id !== existingLog.id) }));
-      } else {
-         get().showToast('Error al actualizar el hábito', 'error');
+      if (error) {
+        set((s) => ({ habitLogs: [...s.habitLogs, existingLog] }));
+        get().showToast(`Error al desmarcar: ${error.message}`, 'error');
       }
     } else {
+      const tid = tempId();
+      const tempLog: HabitLog = { id: tid, habit_id: habitId, completed_date: date };
+      set((s) => ({ habitLogs: [...s.habitLogs, tempLog] }));
       const { data, error } = await supabase.from('habit_logs').insert([{ habit_id: habitId, completed_date: date, user_id: state.user!.id }]).select();
       if (!error && data) {
-         set((state) => ({ habitLogs: [...state.habitLogs, data[0]] }));
+        set((s) => ({ habitLogs: s.habitLogs.map(l => l.id === tid ? data[0] : l) }));
       } else {
-         get().showToast('Error al registrar el hábito', 'error');
+        set((s) => ({ habitLogs: s.habitLogs.filter(l => l.id !== tid) }));
+        get().showToast(`Error al registrar: ${error?.message}`, 'error');
       }
     }
   },
@@ -240,20 +261,25 @@ export const useStore = create<AppState>((set, get) => ({
   addNote: async (content) => {
     const user = get().user;
     if(!user) return;
+    const tid = tempId();
+    const tempNote: Note = { id: tid, content, created_at: new Date().toISOString() };
+    set((s) => ({ notes: [tempNote, ...s.notes] }));
     const { data, error } = await supabase.from('notes').insert([{ content, user_id: user.id }]).select();
     if (!error && data) {
-      set((state) => ({ notes: [data[0], ...state.notes] }));
-    } else if (error) {
-      get().showToast('Error al guardar la nota', 'error');
+      set((s) => ({ notes: s.notes.map(n => n.id === tid ? data[0] : n) }));
+    } else {
+      set((s) => ({ notes: s.notes.filter(n => n.id !== tid) }));
+      get().showToast(`Error al guardar la nota: ${error?.message}`, 'error');
     }
   },
 
   deleteNote: async (id) => {
+    const noteToDelete = get().notes.find(n => n.id === id);
+    set((s) => ({ notes: s.notes.filter(n => n.id !== id) }));
     const { error } = await supabase.from('notes').delete().eq('id', id);
-    if (!error) {
-      set((state) => ({ notes: state.notes.filter(n => n.id !== id) }));
-    } else {
-      get().showToast('Error al eliminar la nota', 'error');
+    if (error) {
+      if (noteToDelete) set((s) => ({ notes: [noteToDelete, ...s.notes] }));
+      get().showToast(`Error al eliminar la nota: ${error.message}`, 'error');
     }
   },
 
@@ -264,18 +290,25 @@ export const useStore = create<AppState>((set, get) => ({
     const existing = get().moodLogs.find(m => m.date === date);
 
     if (existing) {
+      const prevMood = existing.mood;
+      set((s) => ({ moodLogs: s.moodLogs.map(m => m.date === date ? { ...m, mood } : m) }));
       const { data, error } = await supabase.from('mood_logs').update({ mood }).eq('id', existing.id).select();
       if (!error && data) {
-        set((state) => ({ moodLogs: state.moodLogs.map(m => m.date === date ? data[0] : m) }));
+        set((s) => ({ moodLogs: s.moodLogs.map(m => m.date === date ? data[0] : m) }));
       } else if (error) {
-        get().showToast('Error al guardar el estado de ánimo', 'error');
+        set((s) => ({ moodLogs: s.moodLogs.map(m => m.date === date ? { ...m, mood: prevMood } : m) }));
+        get().showToast(`Error al guardar el estado de ánimo: ${error.message}`, 'error');
       }
     } else {
+      const tid = tempId();
+      const tempMood: MoodLog = { id: tid, mood, date };
+      set((s) => ({ moodLogs: [...s.moodLogs, tempMood] }));
       const { data, error } = await supabase.from('mood_logs').insert([{ mood, date, user_id: user.id }]).select();
       if (!error && data) {
-        set((state) => ({ moodLogs: [...state.moodLogs, data[0]] }));
+        set((s) => ({ moodLogs: s.moodLogs.map(m => m.id === tid ? data[0] : m) }));
       } else if (error) {
-        get().showToast('Error al guardar el estado de ánimo', 'error');
+        set((s) => ({ moodLogs: s.moodLogs.filter(m => m.id !== tid) }));
+        get().showToast(`Error al guardar el estado de ánimo: ${error.message}`, 'error');
       }
     }
   },
@@ -283,29 +316,49 @@ export const useStore = create<AppState>((set, get) => ({
   addTask: async (title, priority = 'medium') => {
     const user = get().user;
     if(!user) return;
+    const tid = tempId();
+    const tempTask: Task = { id: tid, title, priority, is_completed: false, created_at: new Date().toISOString() };
+    set((s) => ({ tasks: [tempTask, ...s.tasks] }));
     const { data, error } = await supabase.from('tasks').insert([{ title, priority, user_id: user.id }]).select();
     if (!error && data) {
-      set((state) => ({ tasks: [data[0], ...state.tasks] }));
-    } else if (error) {
-      get().showToast('Error al añadir la tarea', 'error');
+      set((s) => ({ tasks: s.tasks.map(t => t.id === tid ? data[0] : t) }));
+    } else {
+      set((s) => ({ tasks: s.tasks.filter(t => t.id !== tid) }));
+      get().showToast(`Error al añadir la tarea: ${error?.message}`, 'error');
     }
   },
 
   toggleTask: async (id, currentStatus) => {
-    const { data, error } = await supabase.from('tasks').update({ is_completed: !currentStatus }).eq('id', id).select();
+    const newStatus = !currentStatus;
+    set((s) => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, is_completed: newStatus } : t) }));
+    const { data, error } = await supabase.from('tasks').update({ is_completed: newStatus }).eq('id', id).select();
     if (!error && data) {
-      set((state) => ({ tasks: state.tasks.map(t => t.id === id ? data[0] : t) }));
-    } else if (error) {
-      get().showToast('Error al actualizar la tarea', 'error');
+      set((s) => ({ tasks: s.tasks.map(t => t.id === id ? data[0] : t) }));
+    } else {
+      set((s) => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, is_completed: currentStatus } : t) }));
+      get().showToast(`Error al actualizar la tarea: ${error?.message}`, 'error');
     }
   },
 
   deleteTask: async (id) => {
+    const taskToDelete = get().tasks.find(t => t.id === id);
+    set((s) => ({ tasks: s.tasks.filter(t => t.id !== id) }));
     const { error } = await supabase.from('tasks').delete().eq('id', id);
-    if (!error) {
-      set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) }));
-    } else {
-      get().showToast('Error al eliminar la tarea', 'error');
+    if (error) {
+      if (taskToDelete) set((s) => ({ tasks: [taskToDelete, ...s.tasks] }));
+      get().showToast(`Error al eliminar la tarea: ${error.message}`, 'error');
+    }
+  },
+
+  clearCompletedTasks: async () => {
+    const completed = get().tasks.filter(t => t.is_completed);
+    if (completed.length === 0) return;
+    set((s) => ({ tasks: s.tasks.filter(t => !t.is_completed) }));
+    const ids = completed.map(t => t.id);
+    const { error } = await supabase.from('tasks').delete().in('id', ids);
+    if (error) {
+      set((s) => ({ tasks: [...completed, ...s.tasks] }));
+      get().showToast(`Error al limpiar tareas: ${error.message}`, 'error');
     }
   }
 }));

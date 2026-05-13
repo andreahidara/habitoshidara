@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -11,12 +11,16 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction'
 import { EventClickArg } from '@fullcalendar/core'
+import esLocale from '@fullcalendar/core/locales/es'
 
 import { useStore } from "@/store/useStore"
 import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import dynamic from 'next/dynamic'
 
 const EventHeatmap = dynamic(() => import('@/components/EventHeatmap').then(mod => mod.EventHeatmap), { ssr: false })
+
+const EVENT_TITLE_MAX = 100
 
 export function PlannerView() {
   const { events, addEvent, deleteEvent, showToast } = useStore()
@@ -34,7 +38,7 @@ export function PlannerView() {
   }
 
   const handleSaveEvent = async () => {
-    if (newEventTitle.trim() === "") return
+    if (!newEventTitle.trim() || newEventTitle.length > EVENT_TITLE_MAX) return
     await addEvent({ title: newEventTitle, date: selectedDateStr, all_day: true })
     setIsAddDialogOpen(false)
     showToast("Evento guardado")
@@ -61,7 +65,7 @@ export function PlannerView() {
             <CalendarDays className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Planificador
           </h2>
           <div className="relative z-10 flex items-center gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/10 rounded-[2rem] shadow-lg text-[10px] sm:text-[12px] font-black uppercase text-white tracking-widest">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#f2e9e4]" /> {format(new Date(), 'EEEE, d MMM')}
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#f2e9e4]" /> {format(new Date(), 'EEEE, d MMM', { locale: es })}
           </div>
         </div>
         <CardContent className="p-2 sm:p-12 bg-white dark:bg-[#0a0f0a]/50">
@@ -69,6 +73,7 @@ export function PlannerView() {
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
+              locale={esLocale}
               events={events}
               dateClick={handleDateClick}
               eventClick={handleEventClick}
@@ -95,7 +100,7 @@ export function PlannerView() {
                 <CalendarDays className="w-7 h-7 sm:w-8 sm:h-8 opacity-90" /> Nuevo Evento
               </DialogTitle>
               <DialogDescription className="font-bold text-white/80 text-[12px] sm:text-sm flex items-center gap-2 uppercase tracking-widest mt-2">
-                {format(selectedDateStr ? new Date(selectedDateStr + 'T12:00:00') : new Date(), 'EEEE, dd MMM yyyy')}
+                {format(selectedDateStr ? new Date(selectedDateStr + 'T12:00:00') : new Date(), 'EEEE, dd MMM yyyy', { locale: es })}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -105,22 +110,29 @@ export function PlannerView() {
               <label htmlFor="event-title" className="text-xs font-black uppercase tracking-widest text-[#3a5a40] dark:text-[#a3b18a] ml-4 opacity-70">
                 Título del Compromiso
               </label>
-              <Input
-                id="event-title"
-                placeholder="Ej. Diseño UI/UX..."
-                value={newEventTitle}
-                onChange={(e) => setNewEventTitle(e.target.value)}
-                className="w-full bg-white dark:bg-[#0a0f0a]/50 border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-16 px-6 text-xl font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] shadow-inner transition-all placeholder:opacity-30"
-                autoFocus
-                onKeyDown={(e) => { if (e.key === "Enter") handleSaveEvent() }}
-              />
+              <div className="relative">
+                <Input
+                  id="event-title"
+                  placeholder="Ej. Diseño UI/UX..."
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value.slice(0, EVENT_TITLE_MAX))}
+                  className="w-full bg-white dark:bg-[#0a0f0a]/50 border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 rounded-[1.5rem] h-16 px-6 text-xl font-bold tracking-tight text-[#344e41] dark:text-[#dad7cd] focus-visible:ring-4 focus-visible:ring-[#3a5a40]/10 focus-visible:border-[#3a5a40] shadow-inner transition-all placeholder:opacity-30 pr-20"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveEvent() }}
+                />
+                {newEventTitle.length > 0 && (
+                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black ${newEventTitle.length >= EVENT_TITLE_MAX ? 'text-red-500' : 'text-[#a47148]/50'}`}>
+                    {newEventTitle.length}/{EVENT_TITLE_MAX}
+                  </span>
+                )}
+              </div>
             </div>
 
             <DialogFooter className="pt-4 flex !flex-row gap-4">
-              <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="flex-1 rounded-[1.2rem] font-bold h-14 text-sm border-2 border-transparent bg-[#dad7cd]/30 dark:bg-white/5 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all uppercase tracking-widest text-[#3a5a40] dark:text-gray-400">
+              <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="flex-1 rounded-[1.2rem] font-bold h-14 text-sm border-2 border-transparent bg-[#dad7cd]/30 dark:bg-white/5 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all uppercase tracking-widest text-[#3a5a40] dark:text-[#a3b18a]">
                 Cancelar
               </Button>
-              <Button onClick={handleSaveEvent} disabled={!newEventTitle.trim()} className="btn-primary flex-1 rounded-[1.2rem] font-black h-14 text-sm uppercase tracking-widest disabled:opacity-50 transition-all">
+              <Button onClick={handleSaveEvent} disabled={!newEventTitle.trim() || newEventTitle.length > EVENT_TITLE_MAX} className="btn-primary flex-1 rounded-[1.2rem] font-black h-14 text-sm uppercase tracking-widest disabled:opacity-50 transition-all">
                 Guardar
               </Button>
             </DialogFooter>
@@ -148,7 +160,7 @@ export function PlannerView() {
               ¿Eliminar <span className="font-black text-[#3a5a40] dark:text-[#a3b18a]">&quot;{deletingEvent?.title}&quot;</span>?
             </p>
             <DialogFooter className="flex !flex-row gap-4">
-              <Button variant="ghost" onClick={() => { setIsDeleteDialogOpen(false); setDeletingEvent(null) }} className="flex-1 rounded-[1.2rem] font-bold h-14 bg-[#dad7cd]/30 dark:bg-white/5 hover:bg-[#dad7cd]/50 transition-all uppercase tracking-widest text-[#3a5a40] dark:text-gray-400">
+              <Button variant="ghost" onClick={() => { setIsDeleteDialogOpen(false); setDeletingEvent(null) }} className="flex-1 rounded-[1.2rem] font-bold h-14 bg-[#dad7cd]/30 dark:bg-white/5 hover:bg-[#dad7cd]/50 transition-all uppercase tracking-widest text-[#3a5a40] dark:text-[#a3b18a]">
                 Cancelar
               </Button>
               <Button onClick={handleConfirmDelete} className="flex-1 rounded-[1.2rem] font-black h-14 bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 uppercase tracking-widest transition-all">

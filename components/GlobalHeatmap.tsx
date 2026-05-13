@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import { useMemo } from 'react'
 import { ActivityCalendar, ThemeInput } from 'react-activity-calendar'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useStore } from "@/store/useStore"
@@ -12,13 +12,12 @@ export function GlobalHeatmap() {
   const { habitLogs } = useStore()
   const { resolvedTheme } = useTheme()
   
-  // PALETA MUSGO PROFUNDO (V5.2)
   const mossTheme: ThemeInput = {
     light: ['#f2e9e4', '#dad7cd', '#a3b18a', '#588157', '#3a5a40'],
     dark: ['#1b221b', '#344e41', '#3a5a40', '#588157', '#dad7cd']
   }
 
-  const data = React.useMemo(() => {
+  const data = useMemo(() => {
     const today = new Date();
     const startDate = subDays(today, 365);
     

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Toast } from "@/components/ui/Toast"
@@ -33,15 +33,6 @@ const tabVariants: Variants = {
   center: { x: 0, opacity: 1, transition: { type: 'spring' as const, bounce: 0.15, duration: 0.45 } },
   exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0, transition: { duration: 0.2 } }),
 };
-
-/**
- * PALETA HIGH-CONTRAST MOSS (V5.2)
- * - Background: Lino Profundo (#e9e0d8) -> Más contraste con tarjetas
- * - Cards: Blanco Puro (#ffffff)
- * - Primary: Verde Musgo Profundo (#3a5a40)
- * - Accent: Barro (#a47148)
- * - Text: Bosque Negro (#283618)
- */
 
 export default function Home() {
   const {
