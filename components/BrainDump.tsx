@@ -30,7 +30,7 @@ export function BrainDump() {
   }, [notes, search])
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto">
+    <div className="flex flex-col gap-8 w-full">
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          {/* Input Area */}

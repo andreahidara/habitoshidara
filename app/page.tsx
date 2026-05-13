@@ -175,7 +175,7 @@ export default function Home() {
         })}
       </nav>
 
-      <div className="max-w-[1400px] mx-auto flex flex-col gap-12 mt-10 sm:mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
+      <div className="max-w-[1600px] mx-auto flex flex-col gap-12 mt-10 sm:mt-12 px-4 sm:px-6 lg:px-10 relative z-10 w-full mb-12">
 
         <AnimatePresence mode="wait" custom={direction}>
           {isLoading ? (

@@ -73,7 +73,7 @@ export function TaskSection() {
   }
 
   return (
-    <div className="flex flex-col gap-10 w-full max-w-4xl mx-auto px-2 sm:px-0">
+    <div className="flex flex-col gap-10 w-full px-1 sm:px-0">
       
       {/* Header Card */}
       <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
