@@ -129,6 +129,18 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(58, 90, 64, 0.25) transparent;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(58, 90, 64, 0.25);
+    border-radius: 999px;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(88, 129, 87, 0.25);
   }
 
   :focus-visible {
@@ -230,11 +242,11 @@
 
 /* UI Utilities V5.4 */
 .card-base {
-  @apply bg-white dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 shadow-4xl rounded-[2rem] p-8 transition-all duration-300;
+  @apply bg-white dark:bg-[#1b221b] border-2 border-[#3a5a40]/10 dark:border-[#3a5a40]/20 shadow-4xl rounded-[2rem] p-8 transition-all duration-300;
 }
 
 .card-accent {
-  @apply bg-white dark:bg-[#1b221b] border-2 border-[#a47148]/10 shadow-4xl rounded-[2rem] p-8 transition-all duration-300;
+  @apply bg-white dark:bg-[#1b221b] border-2 border-[#a47148]/10 dark:border-[#a47148]/20 shadow-4xl rounded-[2rem] p-8 transition-all duration-300;
 }
 
 .btn-primary {

@@ -69,12 +69,30 @@ export default function Home() {
   if (isCheckingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#e9e0d8] dark:bg-[#0a0f0a]">
-         <div role="status" aria-label="Iniciando sesión" className="flex flex-col items-center gap-4">
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-               <Loader2 className="w-10 h-10 text-[#3a5a40]" aria-hidden="true" />
+        <div role="status" aria-label="Iniciando sesión" className="flex flex-col items-center gap-10">
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", bounce: 0.4, duration: 0.7 }}
+            className="w-20 h-20 flex items-center justify-center rounded-[1.8rem] bg-[#3a5a40] shadow-2xl shadow-[#3a5a40]/30"
+          >
+            <Leaf className="w-10 h-10 text-white" aria-hidden="true" />
+          </motion.div>
+          <div className="flex flex-col items-center gap-4">
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-[11px] font-black uppercase tracking-[0.3em] text-[#3a5a40]/40 dark:text-[#a3b18a]/40"
+            >
+              Preparando tu jardín
+            </motion.p>
+            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}>
+              <Loader2 className="w-5 h-5 text-[#3a5a40]/30 dark:text-[#a3b18a]/30" aria-hidden="true" />
             </motion.div>
-            <span className="sr-only">Cargando...</span>
-         </div>
+          </div>
+          <span className="sr-only">Cargando...</span>
+        </div>
       </div>
     );
   }
@@ -82,8 +100,15 @@ export default function Home() {
   if (!user) return <AuthScreen />;
   return (
     <main className="min-h-screen bg-[#e9e0d8] dark:bg-[#0a0f0a] text-[#283618] dark:text-[#dad7cd] font-sans selection:bg-[#31572c]/40 transition-colors duration-500 overflow-x-hidden pb-24 relative px-2 sm:px-0">
+
+      {/* Ambient gradient blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-[#3a5a40]/[0.06] dark:bg-[#3a5a40]/10 blur-[120px]" />
+        <div className="absolute top-1/2 -translate-y-1/2 -left-40 w-[450px] h-[450px] rounded-full bg-[#a47148]/[0.04] dark:bg-[#a47148]/[0.07] blur-[100px]" />
+        <div className="absolute -bottom-40 right-1/3 w-[400px] h-[400px] rounded-full bg-[#588157]/[0.04] dark:bg-[#588157]/[0.06] blur-[100px]" />
+      </div>
       
-      <header className="sticky top-0 z-50 w-full border-b border-[#3a5a40]/20 dark:border-[#3a5a40]/30 bg-white/95 dark:bg-[#1b221b]/98 backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 shadow-2xl shadow-[#344e41]/10 transition-colors">
+      <header className="sticky top-0 z-50 w-full border-b border-[#3a5a40]/20 dark:border-[#3a5a40]/30 bg-white/95 dark:bg-[#1b221b]/98 backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 shadow-lg shadow-[#344e41]/8 transition-colors">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-3 sm:gap-4">
@@ -109,10 +134,10 @@ export default function Home() {
                const Icon = tab.icon;
                const isActive = activeTab === tab.id;
                return (
-                 <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex items-center gap-3 px-8 py-3.5 rounded-[2rem] text-sm font-black transition-all ${isActive ? 'text-white dark:text-[#a3b18a] z-10' : 'text-[#3a5a40] dark:text-[#588157] hover:text-[#344e41] dark:hover:text-[#dad7cd]'}`}>
+                 <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex items-center gap-0 md:gap-3 px-4 md:px-7 py-3.5 rounded-[2rem] text-sm font-black transition-all ${isActive ? 'text-white dark:text-[#a3b18a] z-10' : 'text-[#3a5a40] dark:text-[#588157] hover:text-[#344e41] dark:hover:text-[#dad7cd]'}`}>
                    {isActive && ( <motion.div layoutId="activeTabDesktop" className="absolute inset-0 bg-[#3a5a40] dark:bg-[#344e41] shadow-2xl rounded-[2rem]" transition={{ type: "spring", bounce: 0.1, duration: 0.7 }} /> )}
                    <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'scale-110' : ''}`} />
-                   <span className="relative z-10">{tab.label}</span>
+                   <span className="relative z-10 hidden md:block">{tab.label}</span>
                  </button>
                )
              })}
@@ -130,25 +155,27 @@ export default function Home() {
       </header>
 
       {/* BOTTOM NAV FOR MOBILE */}
-      <nav className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm bg-white/90 dark:bg-[#1b221b]/95 backdrop-blur-xl border border-[#3a5a40]/20 rounded-[2.5rem] p-2 shadow-[0_20px_50px_-12px_rgba(58,90,64,0.3)] flex items-center justify-between">
+      <nav className="sm:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] w-[94%] max-w-sm bg-white/92 dark:bg-[#1b221b]/97 backdrop-blur-xl border border-[#3a5a40]/15 dark:border-[#3a5a40]/25 rounded-[2.5rem] p-1.5 shadow-[0_20px_60px_-12px_rgba(58,90,64,0.25)] flex items-center justify-between gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-14 rounded-[2rem] transition-all ${isActive ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#3a5a40]/50 dark:text-[#588157]/50'}`}>
-              <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-[#3a5a40]/10' : ''}`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : 'scale-100 opacity-70'}`} />
-              </div>
-              <span className="relative z-10 text-[9px] font-black uppercase tracking-tighter">{tab.label}</span>
+            <button key={tab.id} onClick={() => handleTabChange(tab.id as TabId)} aria-label={`Ir a ${tab.label}`} aria-current={isActive ? 'page' : undefined} className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-14 rounded-[2rem] transition-colors duration-200 ${isActive ? 'text-[#3a5a40] dark:text-[#a3b18a]' : 'text-[#3a5a40]/45 dark:text-[#588157]/60'}`}>
               {isActive && (
-                <motion.div layoutId="activeTabMobile" className="absolute top-1 w-1.5 h-1.5 rounded-full bg-[#3a5a40] dark:bg-[#a3b18a]" transition={{ type: "spring", bounce: 0.1, duration: 0.5 }} />
+                <motion.div
+                  layoutId="activeTabMobile"
+                  className="absolute inset-x-0.5 inset-y-0.5 rounded-[1.7rem] bg-[#3a5a40]/10 dark:bg-[#3a5a40]/20"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
+                />
               )}
+              <Icon className={`w-5 h-5 relative z-10 transition-transform duration-200 ${isActive ? 'scale-110' : 'scale-95'}`} />
+              <span className="relative z-10 text-[10px] font-black uppercase tracking-tighter leading-none">{tab.label}</span>
             </button>
           )
         })}
       </nav>
 
-      <div className="max-w-[1600px] mx-auto flex flex-col gap-12 mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
+      <div className="max-w-[1400px] mx-auto flex flex-col gap-12 mt-10 sm:mt-12 px-4 sm:px-8 relative z-10 w-full mb-12">
 
         <AnimatePresence mode="wait" custom={direction}>
           {isLoading ? (
