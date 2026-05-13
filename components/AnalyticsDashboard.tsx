@@ -84,7 +84,7 @@ export function AnalyticsDashboard() {
             />
             <Bar dataKey="completados" radius={[10, 10, 0, 0]} maxBarSize={44} minPointSize={2}>
                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.completados > 0 ? '#3a5a40' : isDark ? '#2d3d2d' : '#dad7cd'} />
+                  <Cell key={`cell-${index}`} fill={entry.completados > 0 ? '#3a5a40' : isDark ? '#344e41' : '#dad7cd'} />
                ))}
             </Bar>
           </BarChart>

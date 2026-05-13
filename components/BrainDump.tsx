@@ -144,8 +144,8 @@ export function BrainDump() {
             {/* Empty state */}
             {filteredNotes.length === 0 && (
                <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
-                  <div className="w-20 h-20 bg-[#3a5a40]/5 rounded-full flex items-center justify-center">
-                     <Leaf className="w-10 h-10 text-[#3a5a40] opacity-20" />
+                  <div className="w-20 h-20 bg-[#3a5a40]/10 dark:bg-[#3a5a40]/15 rounded-full flex items-center justify-center">
+                     <Leaf className="w-10 h-10 text-[#3a5a40]/40 dark:text-[#a3b18a]/40" />
                   </div>
                   <p className="text-sm font-black uppercase tracking-widest text-[#3a5a40] opacity-30">
                      {search ? `Sin resultados para "${search}"` : 'Tu mente está en paz'}

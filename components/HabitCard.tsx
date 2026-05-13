@@ -105,7 +105,7 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
           )}
 
           {/* Bottom section: heatmap + streak */}
-          <div className="px-6 pt-4 pb-6 border-t border-[#3a5a40]/8 dark:border-[#3a5a40]/15 bg-[#f8f5f0]/60 dark:bg-black/10 rounded-b-[2rem]">
+          <div className="px-6 pt-4 pb-6 border-t border-[#3a5a40]/10 dark:border-[#3a5a40]/15 bg-[#f8f5f0]/60 dark:bg-[#3a5a40]/10 rounded-b-[2rem]">
             <HabitHeatmap logs={habit.logs} />
             <div className="flex justify-between items-center mt-4">
               {habit.streak > 0 ? (

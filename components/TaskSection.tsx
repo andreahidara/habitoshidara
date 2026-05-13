@@ -77,7 +77,7 @@ export function TaskSection() {
       
       {/* Header Card */}
       <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
-        <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-6 sm:px-10 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
+        <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] px-6 sm:px-10 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
           <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase relative z-10">
             <ListTodo className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Tareas Diarias

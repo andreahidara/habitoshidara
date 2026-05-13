@@ -78,13 +78,13 @@ export function HabitsView() {
     <div className="flex flex-col gap-10">
       {/* HEADER */}
       <Card className="card-base border-t-0 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/10">
-        <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#283618] px-6 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
+        <div className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] px-6 sm:px-12 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden border-b-[6px] border-[#a47148]/20">
           <div className="absolute top-[-50%] right-[-10%] w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none" />
           <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter flex items-center gap-3 sm:gap-4 uppercase relative z-10">
               <Target className="w-8 h-8 sm:w-10 sm:h-10 text-white/50" /> Hábitos
           </h2>
           <div className="relative z-10 flex items-center gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/10 border border-white/10 rounded-[2rem] text-[10px] sm:text-[12px] font-black uppercase text-white tracking-widest">
-              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-[#f2e9e4]/70" /> {completedTodayCount} / {totalHabits} hoy
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-white/60" /> {completedTodayCount} / {totalHabits} hoy
           </div>
         </div>
         <CardContent className="p-4 sm:p-10 bg-white dark:bg-[#0a0f0a]/50">
@@ -135,7 +135,7 @@ export function HabitsView() {
 
       {/* SECCIÓN HÁBITOS DIARIOS */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2">
-          <h3 className="text-3xl sm:text-4xl font-black text-[#283618] dark:text-[#fefae0] tracking-tighter uppercase">
+          <h3 className="text-3xl sm:text-4xl font-black text-[#283618] dark:text-[#dad7cd] tracking-tighter uppercase">
             Hábitos Diarios
           </h3>
           <div className="flex items-center gap-4">
