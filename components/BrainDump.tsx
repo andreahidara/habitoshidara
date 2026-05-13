@@ -35,7 +35,7 @@ export function BrainDump() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          {/* Input Area */}
          <div className="lg:col-span-4 translate-y-0">
-            <Card className="card-base border-t-0 md:sticky md:top-40 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/20 max-h-fit">
+            <Card className="card-base border-t-0 md:sticky md:top-24 p-0 overflow-hidden shadow-2xl shadow-[#3a5a40]/20 max-h-fit">
                <CardHeader className="bg-gradient-to-r from-[#3a5a40] to-[#588157] dark:from-[#1b221b] dark:to-[#344e41] py-6 sm:py-8 px-6 sm:px-10 text-white relative overflow-hidden">
                   <div className="absolute top-[-20%] right-[-10%] w-32 h-32 bg-white/10 blur-3xl rounded-full pointer-events-none" />
                   <CardTitle className="text-2xl sm:text-3xl font-black tracking-tighter flex items-center gap-3 sm:gap-4 uppercase leading-none relative z-10">
@@ -66,6 +66,9 @@ export function BrainDump() {
                         </div>
                      )}
                   </div>
+                  <p className="text-[10px] text-[#3a5a40]/35 dark:text-[#a3b18a]/25 font-black uppercase tracking-widest text-right select-none">
+                    Ctrl + Enter para guardar
+                  </p>
                   <Button onClick={handleAdd} disabled={!newNote.trim() || newNote.length > NOTE_MAX} className="btn-primary w-full h-12 sm:h-14 shadow-lg shadow-[#3a5a40]/20 disabled:opacity-40 group">
                      <Send className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> Registrar Semilla
                   </Button>

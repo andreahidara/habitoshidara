@@ -130,6 +130,21 @@ export function TaskSection() {
         </CardContent>
       </Card>
 
+      {/* All completed banner — visible aquí, antes de la lista */}
+      <AnimatePresence>
+        {allCompleted && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex items-center justify-center gap-4 p-6 sm:p-8 rounded-[2rem] bg-gradient-to-r from-[#3a5a40] to-[#588157] text-white shadow-2xl shadow-[#3a5a40]/20"
+          >
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-pulse flex-shrink-0" />
+            <span className="text-lg sm:text-xl font-black uppercase tracking-tighter">¡Día Completado! Eres imparable.</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Clear completed */}
       {hasCompleted && (
         <div className="flex justify-end">
@@ -229,16 +244,6 @@ export function TaskSection() {
         </AnimatePresence>
       </div>
 
-      {allCompleted && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          className="flex items-center justify-center gap-4 p-8 rounded-[2.5rem] bg-gradient-to-r from-[#3a5a40] to-[#588157] text-white shadow-2xl shadow-[#3a5a40]/20"
-        >
-          <Sparkles className="w-8 h-8 animate-pulse" />
-          <span className="text-xl font-black uppercase tracking-tighter">¡Día Completado! Eres imparable.</span>
-        </motion.div>
-      )}
     </div>
   )
 }

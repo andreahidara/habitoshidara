@@ -39,7 +39,7 @@ export function MoodSelector() {
               <span className="text-2xl sm:text-4xl filter drop-shadow-md leading-none" aria-hidden="true">
                 {m.emoji}
               </span>
-              <span className={`text-[8px] sm:text-[10px] font-black tracking-widest uppercase leading-none text-center ${
+              <span className={`text-[10px] sm:text-[11px] font-black tracking-widest uppercase leading-none text-center ${
                 isSelected ? 'text-white' : 'text-[#3a5a40] dark:text-[#a3b18a] opacity-70'
               }`}>
                 {m.label}

@@ -90,7 +90,18 @@ export default function Home() {
              <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-[1rem] sm:rounded-[1.2rem] bg-[#3a5a40] shadow-2xl text-white">
                <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
              </div>
-             <h1 className="font-extrabold text-xl sm:text-2xl tracking-tighter text-[#344e41] dark:text-[#dad7cd] leading-none uppercase">Dashboard</h1>
+             <AnimatePresence mode="wait">
+               <motion.h1
+                 key={activeTab}
+                 initial={{ opacity: 0, y: -6 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 exit={{ opacity: 0, y: 6 }}
+                 transition={{ duration: 0.18 }}
+                 className="font-extrabold text-xl sm:text-2xl tracking-tighter text-[#344e41] dark:text-[#dad7cd] leading-none uppercase"
+               >
+                 {{ home: 'Dashboard', habits: 'Hábitos', tasks: 'Tareas', brain: 'Brain Dump', analytics: 'Estadísticas' }[activeTab]}
+               </motion.h1>
+             </AnimatePresence>
           </div>
 
           <nav className="hidden sm:flex items-center bg-[#dad7cd]/50 dark:bg-black/60 p-1.5 rounded-[2.5rem] border border-[#344e41]/10 backdrop-blur-md">
@@ -107,12 +118,13 @@ export default function Home() {
              })}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'} className="rounded-full hover:bg-[#dad7cd]/40 text-[#3a5a40]">
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => signOut()} aria-label="Cerrar sesión" className="rounded-full text-red-600 hover:bg-red-50"> <LogOut className="h-5 w-5" /> </Button>
+            <div className="w-px h-6 bg-[#3a5a40]/15 dark:bg-[#a3b18a]/15 mx-1" aria-hidden="true" />
+            <Button variant="ghost" size="icon" onClick={() => signOut()} aria-label="Cerrar sesión" className="rounded-full text-red-500/60 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"> <LogOut className="h-5 w-5" /> </Button>
           </div>
         </div>
       </header>

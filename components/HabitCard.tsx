@@ -100,7 +100,7 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
           {/* Swipe hint */}
           {!habit.isCompletedToday && (
             <div className="px-6 pb-1 flex items-center gap-1 text-[9px] text-[#3a5a40]/25 dark:text-[#a3b18a]/20 font-black uppercase tracking-widest select-none pointer-events-none" aria-hidden="true">
-              ← desliza para completar
+              desliza → para completar
             </div>
           )}
 
@@ -108,14 +108,17 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
           <div className="px-6 pt-4 pb-6 border-t border-[#3a5a40]/8 dark:border-[#3a5a40]/15 bg-[#f8f5f0]/60 dark:bg-black/10 rounded-b-[2rem]">
             <HabitHeatmap logs={habit.logs} />
             <div className="flex justify-between items-center mt-4">
-              <span className={`text-xs font-black flex items-center gap-1.5 uppercase tracking-widest px-3 py-1.5 rounded-lg border ${
-                habit.streak > 0
-                  ? 'text-[#a47148] bg-[#a47148]/5 border-[#a47148]/15'
-                  : 'text-[#3a5a40] dark:text-[#a3b18a] bg-[#3a5a40]/5 border-[#3a5a40]/10'
-              }`}>
-                <Flame className={`w-3.5 h-3.5 ${habit.streak > 0 ? 'text-[#a47148]' : 'opacity-40'}`} />
-                {habit.streak > 0 ? `${habit.streak} D` : 'Sin racha'}
-              </span>
+              {habit.streak > 0 ? (
+                <span className="text-xs font-black flex items-center gap-1.5 uppercase tracking-widest px-3 py-1.5 rounded-lg border text-[#a47148] bg-[#a47148]/5 border-[#a47148]/15">
+                  <Flame className="w-3.5 h-3.5 text-[#a47148]" />
+                  {habit.streak} D
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#3a5a40]/20 dark:text-[#a3b18a]/20 flex items-center gap-1">
+                  <Flame className="w-3 h-3 opacity-30" aria-hidden="true" />
+                  0
+                </span>
+              )}
               <button
                 onClick={() => setIsConfirmOpen(true)}
                 aria-label={`Eliminar hábito ${habit.name}`}
