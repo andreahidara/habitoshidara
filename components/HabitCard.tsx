@@ -44,6 +44,7 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
       dragElastic={0.2}
       onDragEnd={handleDragEnd}
       className="h-full cursor-grab active:cursor-grabbing group"
+      title="Desliza hacia la derecha para completar"
     >
       <Card className={`h-full border-2 overflow-hidden p-0 transition-all duration-500 ease-out rounded-[2rem] ${
         habit.isCompletedToday
@@ -73,7 +74,7 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
                 isPending
                   ? 'border-[#3a5a40]/30 bg-[#3a5a40]/10 cursor-wait'
                   : habit.isCompletedToday
-                    ? 'bg-[#3a5a40] border-[#3a5a40] text-white shadow-md shadow-[#3a5a40]/30 hover:bg-red-500 hover:border-red-500'
+                    ? 'bg-[#3a5a40] border-[#3a5a40] text-white shadow-md shadow-[#3a5a40]/30 hover:bg-[#344e41] hover:border-[#344e41]'
                     : 'border-[#dad7cd] dark:border-[#3a5a40]/40 bg-white/50 dark:bg-black/20 hover:border-[#3a5a40] hover:bg-[#3a5a40]/10'
               }`}
             >
@@ -95,6 +96,13 @@ function HabitCardInner({ habit, onToggle, onDelete, isPending = false }: HabitC
               </span>
             )}
           </div>
+
+          {/* Swipe hint */}
+          {!habit.isCompletedToday && (
+            <div className="px-6 pb-1 flex items-center gap-1 text-[9px] text-[#3a5a40]/25 dark:text-[#a3b18a]/20 font-black uppercase tracking-widest select-none pointer-events-none" aria-hidden="true">
+              ← desliza para completar
+            </div>
+          )}
 
           {/* Bottom section: heatmap + streak */}
           <div className="px-6 pt-4 pb-6 border-t border-[#3a5a40]/8 dark:border-[#3a5a40]/15 bg-[#f8f5f0]/60 dark:bg-black/10 rounded-b-[2rem]">

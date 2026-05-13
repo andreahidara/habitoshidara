@@ -13,7 +13,7 @@ const DIAS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 export function AnalyticsDashboard() {
   const { habitLogs } = useStore()
   const { theme } = useTheme()
-  const isDark = theme === 'dark'
+  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   const data = useMemo(() => {
     const today = new Date()
@@ -49,8 +49,17 @@ export function AnalyticsDashboard() {
         <p className="text-white/60 font-bold tracking-widest text-[10px] sm:text-xs uppercase mt-2 relative z-10">Hábitos completados por día</p>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 bg-white dark:bg-[#0a0f0a]/50">
-        <ResponsiveContainer width="100%" height={300} aria-label="Gráfico de hábitos completados por día">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
+        <div className="sr-only" role="table" aria-label="Datos del gráfico semanal">
+          <div role="rowgroup">
+            {data.map(d => (
+              <div role="row" key={d.fecha}>
+                <span role="cell">{d.name} ({d.fecha}): {d.completados} hábito{d.completados !== 1 ? 's' : ''} completado{d.completados !== 1 ? 's' : ''}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={300} aria-hidden="true">
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#3a5a40" opacity={0.1} />
             <XAxis
                dataKey="name"
@@ -73,9 +82,9 @@ export function AnalyticsDashboard() {
               formatter={(value) => [`${Number(value)} hábito${Number(value) !== 1 ? 's' : ''}`, 'Completados']}
               labelFormatter={(label, payload) => payload?.[0]?.payload?.fecha ?? label}
             />
-            <Bar dataKey="completados" radius={[10, 10, 0, 0]} maxBarSize={44}>
+            <Bar dataKey="completados" radius={[10, 10, 0, 0]} maxBarSize={44} minPointSize={2}>
                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.completados > 0 ? '#3a5a40' : isDark ? '#344e41' : '#e9e0d8'} />
+                  <Cell key={`cell-${index}`} fill={entry.completados > 0 ? '#3a5a40' : isDark ? '#2d3d2d' : '#dad7cd'} />
                ))}
             </Bar>
           </BarChart>

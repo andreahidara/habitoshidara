@@ -45,7 +45,9 @@ export function BrainDump() {
                </CardHeader>
                <CardContent className="p-6 sm:p-8 space-y-4 sm:space-y-6 bg-white dark:bg-[#0a0f0a]/50">
                   <div className="relative">
+                     <label htmlFor="note-textarea" className="sr-only">Escribir nota</label>
                      <Textarea
+                        id="note-textarea"
                         placeholder="Escribe lo que ocupa tu mente..."
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value.slice(0, NOTE_MAX))}
@@ -120,7 +122,7 @@ export function BrainDump() {
                               </div>
                               <button
                                  onClick={() => deleteNote(note.id)}
-                                 aria-label="Eliminar nota"
+                                 aria-label={`Eliminar nota: ${note.content.slice(0, 40).replace(/\n/g, ' ')}`}
                                  className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
                               >
                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -143,7 +145,7 @@ export function BrainDump() {
                      <Leaf className="w-10 h-10 text-[#3a5a40] opacity-20" />
                   </div>
                   <p className="text-sm font-black uppercase tracking-widest text-[#3a5a40] opacity-30">
-                     {search ? 'Sin resultados' : 'Tu mente está en paz'}
+                     {search ? `Sin resultados para "${search}"` : 'Tu mente está en paz'}
                   </p>
                </div>
             )}

@@ -55,7 +55,7 @@ export function TaskSection() {
     setPendingTaskIds(prev => new Set(prev).add(id))
     try {
       await toggleTask(id, isCompleted)
-      if (!isCompleted) {
+      if (!isCompleted && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         confetti({
           particleCount: 150,
           spread: 70,
@@ -89,7 +89,7 @@ export function TaskSection() {
         
         <CardContent className="p-6 sm:p-10 bg-white dark:bg-[#0a0f0a]/50 flex flex-col gap-4">
           {/* Priority selector */}
-          <div className="flex items-center gap-2">
+          <div role="group" aria-label="Prioridad de la tarea" className="flex items-center gap-2">
             {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => {
               const { label, Icon, ring } = PRIORITY_CONFIG[p]
               const active = newPriority === p
@@ -134,6 +134,7 @@ export function TaskSection() {
       {hasCompleted && (
         <div className="flex justify-end">
           <button
+            type="button"
             onClick={() => clearCompletedTasks()}
             className="flex items-center gap-2 px-4 py-2 rounded-[1rem] text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 transition-all"
           >
@@ -205,15 +206,16 @@ export function TaskSection() {
                         </span>
 
                         {!task.is_completed && (
-                          <span className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest flex-shrink-0 ${pCfg.badge}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pCfg.dot}`} />
-                            {pCfg.label}
+                          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest flex-shrink-0 ${pCfg.badge}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pCfg.dot}`} aria-hidden="true" />
+                            <span className="hidden sm:inline">{pCfg.label}</span>
+                            <span className="sr-only">Prioridad {pCfg.label}</span>
                           </span>
                         )}
 
                         <button
                           onClick={() => deleteTask(task.id)}
-                          aria-label="Eliminar tarea"
+                          aria-label={`Eliminar tarea: ${task.title}`}
                           className="p-2 sm:p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-shrink-0"
                         >
                           <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />

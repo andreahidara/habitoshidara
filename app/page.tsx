@@ -69,10 +69,11 @@ export default function Home() {
   if (isCheckingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#e9e0d8] dark:bg-[#0a0f0a]">
-         <div className="flex flex-col items-center gap-4">
+         <div role="status" aria-label="Iniciando sesión" className="flex flex-col items-center gap-4">
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-               <Loader2 className="w-10 h-10 text-[#3a5a40]" />
+               <Loader2 className="w-10 h-10 text-[#3a5a40]" aria-hidden="true" />
             </motion.div>
+            <span className="sr-only">Cargando...</span>
          </div>
       </div>
     );
@@ -92,7 +93,7 @@ export default function Home() {
              <h1 className="font-extrabold text-xl sm:text-2xl tracking-tighter text-[#344e41] dark:text-[#dad7cd] leading-none uppercase">Dashboard</h1>
           </div>
 
-          <nav className="hidden md:flex items-center bg-[#dad7cd]/50 dark:bg-black/60 p-1.5 rounded-[2.5rem] border border-[#344e41]/10 backdrop-blur-md">
+          <nav className="hidden sm:flex items-center bg-[#dad7cd]/50 dark:bg-black/60 p-1.5 rounded-[2.5rem] border border-[#344e41]/10 backdrop-blur-md">
              {tabs.map((tab) => {
                const Icon = tab.icon;
                const isActive = activeTab === tab.id;
@@ -117,7 +118,7 @@ export default function Home() {
       </header>
 
       {/* BOTTOM NAV FOR MOBILE */}
-      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm bg-white/90 dark:bg-[#1b221b]/95 backdrop-blur-xl border border-[#3a5a40]/20 rounded-[2.5rem] p-2 shadow-[0_20px_50px_-12px_rgba(58,90,64,0.3)] flex items-center justify-between">
+      <nav className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm bg-white/90 dark:bg-[#1b221b]/95 backdrop-blur-xl border border-[#3a5a40]/20 rounded-[2.5rem] p-2 shadow-[0_20px_50px_-12px_rgba(58,90,64,0.3)] flex items-center justify-between">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -186,20 +187,10 @@ export default function Home() {
               )}
 
                {/* BRAIN DUMP */}
-               {activeTab === 'brain' && (
-                  <div>
-                     <h2 className="text-5xl font-black text-[#283618] dark:text-[#fefae0] mb-14 tracking-tighter uppercase">Diario Interno</h2>
-                     <BrainDump />
-                  </div>
-               )}
+               {activeTab === 'brain' && <BrainDump />}
 
                {/* TAREAS */}
-               {activeTab === 'tasks' && (
-                  <div>
-                     <h2 className="text-5xl font-black text-[#283618] dark:text-[#fefae0] mb-14 tracking-tighter uppercase">Misión Diaria</h2>
-                     <TaskSection />
-                  </div>
-               )}
+               {activeTab === 'tasks' && <TaskSection />}
 
               {/* ESTADÍSTICAS */}
               {activeTab === 'analytics' && (

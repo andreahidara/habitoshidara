@@ -43,7 +43,7 @@ export function HabitsView() {
     setPendingHabitIds(prev => new Set(prev).add(habitId))
     try {
       await toggleHabitLog(habitId, todayStr)
-      if (!currentlyCompleted) {
+      if (!currentlyCompleted && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         confetti({
           particleCount: 200,
           spread: 90,
