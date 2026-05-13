@@ -44,5 +44,20 @@ next-env.d.ts
 lint.json
 lint_output.txt
 skills-lock.json
+AGENTS.md
 .agents/
 .claude/settings.local.json
+.claude/settings.json
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.user
